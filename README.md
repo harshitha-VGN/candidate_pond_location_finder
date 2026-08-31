@@ -1,276 +1,403 @@
-# CSD Pond Planning API — Technical Report
+# CSD Pond Planning API
 
-## 1. Project Overview
+This project is a Flask-based API for finding suitable pond locations from contour data provided as KML or KMZ files.
 
-This project implements a **backend REST API** that accepts contour map data in KML/KMZ format, performs hydrological terrain analysis, identifies suitable pond locations, and estimates the corresponding catchment area for each candidate site.
+The application takes the contour information, creates a Digital Elevation Model (DEM), studies the terrain and direction of surface water flow, identifies possible catchment and pond locations, ranks the available locations, performs basic pond-size calculations, and returns the results in GeoJSON format for visualization.
 
-The API is fully generalised — no coordinates, elevations, or results are hardcoded. All analysis is derived algorithmically from the input contour map, making it applicable to any terrain in KML/KMZ format.
+## Features
 
----
+- Supports `.kml` and `.kmz` contour files.
+- Reads contour coordinates and elevation values.
+- Builds a regular Digital Elevation Model (DEM).
+- Calculates water flow using the D8 method.
+- Calculates flow accumulation across the DEM.
+- Identifies high-flow areas that may represent rivers or streams.
+- Finds local minima that can act as water collection points.
+- Determines upstream catchments using reverse BFS.
+- Removes unsuitable pond locations using terrain and catchment conditions.
+- Prevents multiple candidates from being placed too close together.
+- Scores candidates using catchment area, slope, and depression depth.
+- Uses historical rainfall data from Open-Meteo when available.
+- Estimates runoff, storage capacity, and basic pond dimensions.
+- Produces catchment polygons, pond-site polygons, and candidate points as GeoJSON.
 
-## 2. API Endpoints
+## Analysis Pipeline
 
-### Base URL
+The application processes an uploaded contour file through several stages:
+
+```text
+KML / KMZ
+    |
+    v
+KML Parser
+    |
+    v
+Contour Coordinates + Elevations
+    |
+    v
+DEM Builder
+    |
+    v
+Digital Elevation Model
+    |
+    v
+Terrain Analysis
+    |
+    +--> D8 Flow Direction
+    +--> Flow Accumulation
+    +--> River Detection
+    +--> Depression Filling
+    |
+    v
+Pond Candidate Detection
+    |
+    +--> Local Minima
+    +--> River Exclusion
+    +--> Catchment Delineation
+    +--> Catchment Filtering
+    |
+    v
+Candidate Selection
+    |
+    +--> Catchment Area
+    +--> Slope
+    +--> Depression Depth
+    |
+    v
+Pond Design Estimation
+    |
+    +--> Rainfall
+    +--> Runoff
+    +--> Storage
+    +--> Pond Size
+    |
+    v
+GeoJSON Output
+````
+
+## File Description
+
+### `app.py`
+
+`app.py` is the main file of the project and starts the Flask server.
+
+It receives the uploaded KML/KMZ file and controls the complete analysis process. It first checks the file type and size, reads the optional parameters, and then calls the other modules in the required order.
+
+The main processing sequence is:
+
+1. Read and validate the uploaded file.
+2. Parse the contour information.
+3. Generate the DEM.
+4. Add the small DEM perturbation and calculate flow direction.
+5. Calculate flow accumulation.
+6. Detect river areas and create the river exclusion region.
+7. Find pond candidates and their catchments.
+8. Rank the candidates.
+9. Generate the GeoJSON result.
+10. Send the result back to the client.
+
+The file also contains the following API routes:
+
+* `GET /health`
+* `GET /api/info`
+* `POST /analyzeContour`
+* `POST /findCatchment`
+
+### `config.py`
+
+`config.py` contains the parameters used by the different parts of the application.
+
+Keeping the values here makes it easier to change the behaviour of the analysis without modifying the algorithms themselves.
+
+The configuration includes values for:
+
+* DEM resolution
+* Contour sampling distance
+* DEM smoothing
+* Flow accumulation percentile
+* River buffer
+* River-sink filtering
+* Minimum elevation
+* Minimum and maximum catchment size
+* Minimum distance between pond candidates
+* Minimum depression depth
+* Candidate scoring weights
+* Runoff coefficient
+* Pond depth
+* Freeboard
+* Rainfall dates
+* Rainfall fallback value
+* Open-Meteo timeout
+* Maximum upload size
+
+### `kml_parser.py`
+
+This module handles the input contour file.
+
+It can read both KML and KMZ files. When a KMZ file is supplied, it opens the archive and finds the KML file inside it.
+
+The parser extracts the contour geometry and elevation. It supports:
+
+* `LineString`
+* `LinearRing`
+* `Polygon`
+
+Elevation is checked in several places so that different KML formats can be handled. It can come from the Placemark name, description, `SimpleData`, or the Z-coordinate.
+
+There is also a folder-level fallback for KML files where the elevation is stored in the folder name.
+
+The result from this module is a list containing the contour elevation and its coordinates.
+
+### `dem_builder.py`
+
+`dem_builder.py` takes the contour data from the parser and converts it into a regular elevation grid.
+
+First, points are sampled along the contour lines. These points are then interpolated over the study area using `scipy.griddata`.
+
+The module also:
+
+1. Creates the regular grid.
+2. Interpolates elevation values.
+3. Uses nearest-neighbour interpolation where the first interpolation leaves gaps.
+4. Smooths the resulting DEM using a Gaussian filter.
+5. Calculates the approximate physical size of each grid cell.
+6. Stores the geographic information needed by the later stages.
+
+The output consists of the DEM array and metadata describing the grid.
+
+### `terrain_analysis.py`
+
+This module performs the main terrain and hydrological calculations.
+
+It contains the following operations:
+
+**DEM perturbation:**
+A very small, reproducible amount of noise is added to the DEM. This helps avoid ambiguity when neighbouring cells have exactly the same elevation.
+
+**D8 flow direction:**
+Each grid cell checks its eight neighbouring cells and selects the direction with the greatest downward slope. A cell without a lower neighbour is treated as a local minimum.
+
+**Flow accumulation:**
+The flow network is processed from higher cells toward lower cells so that upstream contributions can be accumulated at downstream cells.
+
+**Priority-Flood:**
+Depressions in the DEM are filled to determine how deep the original depressions are.
+
+**River detection:**
+Cells with high flow accumulation are identified using the configured percentile threshold. Local minima are excluded from the river mask because they are collection points rather than locations where water continues downstream.
+
+The module also calculates the slope of the terrain in degrees.
+
+### `catchment.py`
+
+`catchment.py` is responsible for finding potential pond locations and determining the area that drains toward each one.
+
+The process starts by finding local minima in the flow-direction grid. These locations are possible natural collection points.
+
+The module then removes locations that are not suitable, including areas affected by river exclusion, river/floodplain sinks, low elevation, or unsuitable catchment sizes.
+
+For every remaining candidate, reverse BFS is used on the flow-direction grid. Instead of following water downstream, the search starts at the candidate and finds all cells that flow into it. These cells make up the candidate's upstream catchment.
+
+The module calculates useful information for each candidate, such as:
+
+* Catchment area
+* Number of catchment cells
+* Minimum elevation
+* Maximum elevation
+* Mean slope
+* Depression depth
+* Flow accumulation
+
+A spatial suppression step is applied at the end so that candidates that are too close to one another are removed.
+
+### `pond_selector.py`
+
+This module takes the candidates generated by `catchment.py` and decides which ones are better suited for the final result.
+
+Each candidate is given a score using:
+
+* Catchment area
+* Slope
+* Depression depth
+
+A larger catchment area and deeper depression contribute positively to the score, while a lower slope is preferred.
+
+After ranking the candidates, the module estimates basic pond-design values.
+
+It requests historical rainfall from the Open-Meteo Historical API. If the request is unsuccessful, the configured fallback rainfall value is used instead.
+
+The calculations provide estimates for:
+
+* Annual rainfall
+* Annual runoff
+* Target storage
+* Recommended pond depth
+* Pond surface area
+* Approximate pond radius
+
+Rainfall results are cached using rounded coordinates so that the same location does not require repeated API requests.
+
+### `geojson_builder.py`
+
+`geojson_builder.py` prepares the final output for mapping and visualization.
+
+It creates a GeoJSON `FeatureCollection` containing the selected pond candidates.
+
+For each candidate, the output can include:
+
+1. **Catchment area** - the upstream watershed contributing flow to the candidate.
+2. **Pond site** - the depression area selected for the pond-site polygon.
+3. **Pond candidate** - a point representing the candidate's location.
+
+The candidate point contains additional information such as rank, score, elevation, slope, depression depth, catchment area, rainfall, runoff, storage, and estimated pond dimensions.
+
+The module also adds metadata containing information about the study area, DEM resolution, elevation range, number of contours, and coordinate reference system.
+
+## Installation
+
+Python 3.10 or newer is recommended.
+
+Install the project dependencies using:
+
+```bash
+pip install -r requirements.txt
 ```
+
+## Running the API
+
+Start the Flask application with:
+
+```bash
+python app.py
+```
+
+The server will be available at:
+
+```text
 http://localhost:5000
 ```
 
-### POST /analyzeContour
-Main endpoint for terrain analysis and catchment delineation.
+## API Endpoints
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `file` | File (form-data) | Yes | `.kml` or `.kmz` contour map |
-| `top_n` | Integer | No (default: 5) | Number of pond candidates to return (max 10) |
-| `grid_res` | Integer | No (default: 120) | DEM grid resolution in cells per axis (range: 50-300) |
+### Health Check
 
-**Content-Type:** `multipart/form-data`
-
-### POST /findCatchment
-Alias for `/analyzeContour` — identical behaviour.
-
-### GET /health
-Liveness probe. Returns `{"status": "ok"}`.
-
-### GET /api/info
-Returns all hardcoded parameters and endpoint documentation as JSON.
-
----
-
-## 3. Algorithm & Technical Approach
-
-### 3.1 Input Parsing
-The uploaded `.kml` or `.kmz` file is parsed using Python's `zipfile` and `xml.etree.ElementTree` modules. Each `<Placemark>` containing a `<LineString>` is treated as a contour line with an associated elevation extracted from the placemark name. Points are sampled along each contour at `SAMPLE_SPACING_M = 20 m` intervals to build a dense point cloud.
-
-### 3.2 Digital Elevation Model (DEM) Construction
-The sampled contour points are interpolated onto a regular `120 x 120` grid using **linear interpolation** (`scipy.interpolate.griddata`). A **Gaussian smoothing filter** (`sigma = 1.5` cells) is applied to remove interpolation artefacts. The result is a continuous DEM over the study area.
-
-### 3.3 D8 Flow Direction (Original DEM + Perturbation)
-The **D8 (8-direction) flow routing** algorithm is applied to the DEM. A critical improvement over naive D8:
-
-> **Flat-area fix:** A tiny random perturbation (`1 mm`, seed=42) is added to the original DEM *before* computing flow direction. This breaks elevation ties in flat areas (such as floodplains) without distorting real terrain. Without this, flat areas produce undefined flow directions (NO_DIR), causing the upstream BFS to stall after only a few cells — resulting in artificially tiny catchments.
-
-Each cell is assigned a flow direction toward the lowest of its 8 neighbours. Cells with no lower neighbour are marked as local minima (NO_DIR) — these are natural water collection points.
-
-### 3.4 Flow Accumulation
-Flow accumulation is computed in a single pass sorted from highest to lowest elevation (O(N log N)). Each cell's count propagates downstream following the D8 directions. The result is normalised to [0, 1] relative to the grid maximum.
-
-### 3.5 River / Stream Detection
-River channels are identified as cells where:
-```
-flow_accumulation >= 90th percentile  AND  flow_direction != NO_DIR
+```http
+GET /health
 ```
 
-The second condition (`flow_dir != NO_DIR`) is critical: **local minima always accumulate the highest flow** (they are collection points), but they are *not* river channels — they are pour points. Without this condition, every pond candidate (which IS a local minimum) would be classified as a river and the algorithm would return zero results.
+This endpoint can be used to check whether the API is running.
 
-### 3.6 River Exclusion (Three-Layer Defence)
-To prevent pond candidates from being placed in or near rivers, three independent filters are applied:
-
-| Layer | Mechanism | Purpose |
-|-------|-----------|---------|
-| Layer 1 — Spatial buffer | 6-cell morphological dilation of river mask | Excludes candidates within ~150 m of detected channel |
-| Layer 2 — Flow-acc filter | Exclude local minima with acc >= 55% of grid max | Removes river floodplain sinks missed by the buffer |
-| Layer 3 — Elevation floor | Exclude cells below the 15th percentile elevation | Removes remaining low-lying river valley candidates |
-
-A safety check ensures the combined exclusion zone never exceeds 60% of the grid (prevents "no candidates" errors on large rivers).
-
-### 3.7 Candidate Detection via BFS
-Local minima surviving all three filters are treated as **pond candidates** (natural pour points). For each candidate, a **Breadth-First Search (BFS) on the reverse flow-direction graph** traces all cells that drain into it — this defines the upstream catchment.
-
-The BFS naturally terminates at drainage divides (ridges), where no upstream neighbours exist. This avoids the need for explicit ridge detection.
-
-Candidates are filtered by:
-- **Minimum catchment area:** 1.0 ha
-- **Maximum catchment fraction:** 55% of total grid area (avoids the single dominant basin)
-- **Spatial NMS (Non-Maximum Suppression):** Minimum 15-cell separation between candidates
-
-### 3.8 Scoring & Ranking
-Each candidate is scored as a weighted sum of three normalised factors:
-
-```
-score = 0.45 x norm(catchment_area)
-      + 0.30 x (1 - norm(slope_deg))    <- gentler slope scores higher
-      + 0.25 x norm(depression_depth_m)
-```
-
-Candidates are ranked by score and the top N are returned.
-
-### 3.9 Rainfall & Runoff Estimation
-Annual rainfall is fetched from the **Open-Meteo Historical Weather API** (ERA5 reanalysis, 2018-2025) using the candidate's latitude/longitude. If the API is unavailable, a fallback of `800 mm/yr` is used.
-
-Estimated annual runoff is computed using the **Rational Method**:
-```
-Annual runoff (m3) = C x Rainfall (m) x Catchment area (m2)
-                   where C = 0.30 (runoff coefficient)
-```
-
-### 3.10 GeoJSON Output
-The response is a **GeoJSON FeatureCollection (EPSG:4326)** with three features per candidate:
-
-| Feature | Geometry | Description |
-|---------|----------|-------------|
-| `catchment_area` | Polygon | Full upstream watershed (light blue, 25% opacity) |
-| `pond_site` | Polygon | Depression bowl / immediate collection zone (dark border) |
-| `pond_candidate` | Point | Exact pour-point location with all computed attributes |
-
-Catchment polygons are smoothed using **Gaussian blur** (`sigma = 2.0`) before marching-squares contouring, producing organic watershed-shaped boundaries instead of pixel staircases.
-
----
-
-## 4. Hardcoded Parameters
-
-All parameters are centralised in `config.py`:
-
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| `GRID_RESOLUTION` | 120 | DEM grid cells per axis (120x120 = 14,400 cells) |
-| `SAMPLE_SPACING_M` | 20 m | Point sampling interval along contour lines |
-| `SMOOTH_SIGMA` | 1.5 | Gaussian DEM smoothing sigma (cells) |
-| `INTERP_METHOD` | linear | Griddata interpolation method |
-| `DEM_PERTURB` | 0.001 m | Noise amplitude for flat-area tie-breaking (seed=42) |
-| `RIVER_PERCENTILE` | 90.0 | Flow-acc threshold for river channel detection |
-| `RIVER_BUFFER_CELLS` | 6 | Spatial exclusion buffer around river mask |
-| `RIVER_SINK_FLOW_FRACTION` | 0.55 | Flow-acc fraction above which a local min = river sink |
-| `MIN_ELEVATION_PERCENTILE` | 15.0 | Candidates must be above this elevation percentile |
-| `MIN_CATCHMENT_AREA_HA` | 1.0 ha | Minimum catchment area for a valid candidate |
-| `MAX_CATCHMENT_FRACTION` | 0.55 | Max fraction of grid a catchment may occupy |
-| `MIN_POND_DIST_CELLS` | 15 | NMS suppression radius (grid cells) |
-| `MIN_DEPRESSION_M` | 1.5 m | Minimum depression depth for the pond-site polygon |
-| `W_CATCHMENT` | 0.45 | Scoring weight: catchment area |
-| `W_SLOPE` | 0.30 | Scoring weight: slope gentleness |
-| `W_DEPTH` | 0.25 | Scoring weight: depression depth |
-| `TOP_N` | 5 | Default number of candidates returned |
-| `RUNOFF_COEFF` | 0.30 | Rational method coefficient C |
-| `POND_DEPTH_M` | 3.0 m | Recommended excavation depth |
-| `FREEBOARD_M` | 0.50 m | Safety buffer above max water level |
-| `METEO_START` | 2018-01-01 | Historical rainfall start date |
-| `METEO_END` | 2025-12-31 | Historical rainfall end date (last complete year) |
-| `FALLBACK_RAIN_M` | 0.800 m | Fallback annual rainfall when API unavailable |
-| `MAX_UPLOAD_MB` | 50 MB | Maximum file upload size |
-
----
-
-## 5. Sample API Response (Abbreviated)
+Example response:
 
 ```json
 {
-  "type": "FeatureCollection",
-  "metadata": {
-    "algorithm": "Original-DEM D8 + Priority-Flood + reverse-BFS catchment",
-    "river_exclusion": "3-layer: spatial buffer + flow-acc filter + elevation floor",
-    "grid_resolution": 120,
-    "cell_area_m2": 616.0,
-    "study_area_km2": 8.87,
-    "elevation_range_m": { "min": 30.0, "max": 298.0 },
-    "n_contours_input": 1356,
-    "n_candidates_returned": 5,
-    "processing_time_s": 4.5
-  },
-  "features": [
-    {
-      "type": "Feature",
-      "id": "pond_1",
-      "geometry": { "type": "Point", "coordinates": [81.291, 21.252] },
-      "properties": {
-        "feature_type": "pond_candidate",
-        "rank": 1,
-        "latitude": 21.252,
-        "longitude": 81.291,
-        "elevation_m": 87.5,
-        "catchment_area_ha": 12.34,
-        "annual_rainfall_mm": 1406.8,
-        "estimated_annual_runoff_m3": 45278.0,
-        "recommended_pond_depth_m": 3.5,
-        "score": 0.8721
-      }
-    }
-  ]
+    "status": "ok",
+    "service": "CSD Pond Planning API",
+    "version": "1.0"
 }
 ```
 
----
+### API Information
 
-## 6. Technology Stack
-
-| Component | Library / Tool |
-|-----------|---------------|
-| Web framework | Flask 3.x + Flask-CORS |
-| Geospatial parsing | Python xml.etree, zipfile |
-| Numerical computation | NumPy, SciPy |
-| Interpolation | scipy.interpolate.griddata |
-| Morphological ops | scipy.ndimage |
-| Polygon contouring | scikit-image (marching squares) |
-| Rainfall data | Open-Meteo Historical API (ERA5) |
-| HTTP requests | requests |
-
----
-
-## 7. Project Structure
-
-```
-csd_pond/
-├── app.py              Flask application — routes and pipeline orchestration
-├── config.py           All hardcoded parameters (single source of truth)
-├── kml_parser.py       KML/KMZ parsing and contour line extraction
-├── dem_builder.py      Point cloud to interpolated DEM
-├── terrain_analysis.py D8 flow direction, flow accumulation, river detection
-├── catchment.py        BFS upstream delineation, candidate selection, NMS
-├── pond_selector.py    Scoring, ranking, Open-Meteo rainfall integration
-├── geojson_builder.py  GeoJSON FeatureCollection construction
-└── requirements.txt    Python dependencies
+```http
+GET /api/info
 ```
 
----
+This returns information about the available endpoints and the configuration values being used by the application.
 
-## 8. Setup & Running
+### Analyze Contours
 
-### Prerequisites
-- Python 3.10+
-- Virtual environment recommended
+```http
+POST /analyzeContour
+```
 
-### Install dependencies
+The request uses `multipart/form-data`.
+
+Required field:
+
+```text
+file = <KML or KMZ file>
+```
+
+Optional fields:
+
+```text
+top_n = 5
+grid_res = 120
+```
+
+Example:
+
 ```bash
-pip install flask flask-cors numpy scipy scikit-image requests
+curl -X POST http://localhost:5000/analyzeContour \
+  -F "file=@contours.kml" \
+  -F "top_n=5" \
+  -F "grid_res=120"
 ```
 
-### Run the server
-```bash
-cd csd_pond
-python3 app.py
-```
-Server starts on `http://localhost:5000`.
+The response is a GeoJSON `FeatureCollection` containing the selected pond candidates and their associated information.
 
-### Test with Postman
-```
-Method  : POST
-URL     : http://localhost:5000/analyzeContour
-Body    : form-data
-  Key   : file   (Type = File)   -> select your .kml or .kmz file
-  Key   : top_n  (Type = Text)   -> 5  (optional)
+### Find Catchment
+
+```http
+POST /findCatchment
 ```
 
----
+This route is an alias of `/analyzeContour` and uses the same processing pipeline.
 
-## 9. Key Design Decisions
+## Output
 
-### Why original DEM + perturbation instead of filled DEM?
-After depression-filling, flat interior cells share the same elevation. D8 cannot determine flow direction (NO_DIR). BFS from a local minimum hits these cells and stops immediately — catchment of 3-4 cells only. Adding 1 mm of random noise ensures every cell has a uniquely lowest neighbour, enabling full watershed traversal.
+The generated GeoJSON contains information about the selected candidates, including:
 
-### Why exclude NO_DIR cells from the river mask?
-A local minimum accumulates all upstream flow, so it always scores in the top percentile of flow accumulation. Without the `flow_dir != NO_DIR` condition, every pond candidate IS classified as a river — yielding zero results.
+* Candidate rank
+* Candidate score
+* Location
+* Elevation
+* Slope
+* Depression depth
+* Catchment area
+* Catchment cell count
+* Flow accumulation
+* Annual rainfall
+* Rainfall source
+* Estimated annual runoff
+* Runoff coefficient
+* Recommended pond depth
+* Estimated storage
+* Estimated pond surface area
+* Estimated pond radius
 
-### Why three-layer river exclusion?
-A single spatial buffer fails when the detected channel is narrow but the physical floodplain is wide. The flow-accumulation filter catches floodplain sinks physically far from the channel. The elevation floor provides a final barrier for any remaining low-lying candidates.
+The GeoJSON can be opened in GIS or web-mapping applications to visualize the candidate pond locations and their catchment areas.
 
-### Why Gaussian blur for polygon smoothing?
-Binary dilation of a raster mask produces a staircase boundary. Gaussian blur converts the binary mask to a smooth gradient; marching squares at the 0.5 iso-line traces a smooth organic curve matching the natural watershed shape.
+## Technologies Used
 
----
+* Python
+* Flask
+* Flask-CORS
+* NumPy
+* SciPy
+* scikit-image
+* lxml
+* Requests
+* Open-Meteo Historical API
 
-## 10. Limitations & Future Work
+## Project Structure
 
-- **Grid resolution:** At 120x120, each cell is ~25x22 m. Finer resolution gives more accurate catchments but increases processing time quadratically.
-- **Interpolation artefacts:** `griddata` linear interpolation can create small spurious depressions between widely-spaced contour lines.
-- **River detection:** Uses flow accumulation as a proxy. For maps with multiple river systems, explicit river polyline input would improve exclusion accuracy.
-- **Rainfall:** Open-Meteo provides area-averaged ERA5 data. Station-level rain gauge data would improve runoff estimates.
-- **Soil type:** The rational method coefficient C = 0.30 assumes moderate agricultural slope. Adding soil classification from external APIs would make this site-specific.
+```text
+project/
+│
+├── app.py                  # Flask API and main processing pipeline
+├── config.py               # Analysis parameters
+├── kml_parser.py           # KML/KMZ parsing
+├── dem_builder.py          # DEM generation
+├── terrain_analysis.py     # Terrain and flow analysis
+├── catchment.py            # Catchment and candidate detection
+├── pond_selector.py        # Candidate ranking and pond estimates
+├── geojson_builder.py      # GeoJSON generation
+├── requirements.txt        # Python dependencies
+├── .gitignore              # Files ignored by Git
+└── README.md               # Project documentation
+```
+
+```
+```
