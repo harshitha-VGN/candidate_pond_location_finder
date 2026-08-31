@@ -398,6 +398,3 @@ project/
 ├── .gitignore              # Files ignored by Git
 └── README.md               # Project documentation
 ```
-
-```
-```
