@@ -27,15 +27,13 @@ from terrain_analysis import (
     compute_slope_deg,
 )
 
-from config import (
-    MIN_CATCHMENT_AREA_HA,
-    MIN_CATCHMENT_CELLS,
-    MAX_CATCHMENT_FRACTION,
-    MIN_POND_DIST_CELLS,
-    MIN_DEPRESSION_M,
-    RIVER_SINK_FLOW_FRACTION,
-    MIN_ELEVATION_PERCENTILE,
-)
+MIN_CATCHMENT_AREA_HA: float = 1.0
+MIN_CATCHMENT_CELLS: int = 6
+MAX_CATCHMENT_FRACTION: float = 0.55
+MIN_POND_DIST_CELLS: int = 15
+MIN_DEPRESSION_M: float = 1.5
+RIVER_SINK_FLOW_FRACTION: float = 0.55
+MIN_ELEVATION_PERCENTILE: float = 15.0
 
 
 log = logging.getLogger(__name__)

@@ -4,7 +4,6 @@ app.py - CSD Pond Planning API (Flask)
 Routes
 ------
 GET  /health
-GET  /api/info
 POST /analyzeContour
 POST /findCatchment
 
@@ -26,7 +25,10 @@ import time
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-import config as cfg
+MAX_UPLOAD_MB: int = 50
+TOP_N: int = 5
+GRID_RESOLUTION: int = 120
+RIVER_BUFFER_CELLS: int = 6   # ~150 m spatial buffer around river channel
 from kml_parser import parse_kml_kmz
 from dem_builder import build_dem
 from terrain_analysis import (
@@ -62,49 +64,6 @@ def health():
     })
 
 
-@app.route("/api/info", methods=["GET"])
-def api_info():
-    return jsonify({
-        "endpoints": {
-            "POST /analyzeContour": {
-                "content_type": "multipart/form-data",
-                "params": {
-                    "file": "required | .kml or .kmz",
-                    "top_n": f"optional int (default {cfg.TOP_N}, max 10)",
-                    "grid_res": (
-                        f"optional int (default {cfg.GRID_RESOLUTION}, "
-                        "range 50-300)"
-                    ),
-                },
-                "response": "GeoJSON FeatureCollection EPSG:4326",
-            },
-            "POST /findCatchment": "Alias for /analyzeContour",
-        },
-        "hardcoded_values": {
-            "GRID_RESOLUTION": cfg.GRID_RESOLUTION,
-            "SAMPLE_SPACING_M": cfg.SAMPLE_SPACING_M,
-            "SMOOTH_SIGMA": cfg.SMOOTH_SIGMA,
-            "INTERP_METHOD": cfg.INTERP_METHOD,
-            "DEM_PERTURB": cfg.DEM_PERTURB,
-            "RIVER_PERCENTILE": cfg.RIVER_PERCENTILE,
-            "MIN_CATCHMENT_AREA_HA": cfg.MIN_CATCHMENT_AREA_HA,
-            "MIN_CATCHMENT_CELLS": cfg.MIN_CATCHMENT_CELLS,
-            "MAX_CATCHMENT_FRACTION": cfg.MAX_CATCHMENT_FRACTION,
-            "MIN_POND_DIST_CELLS": cfg.MIN_POND_DIST_CELLS,
-            "W_CATCHMENT": cfg.W_CATCHMENT,
-            "W_SLOPE": cfg.W_SLOPE,
-            "W_DEPTH": cfg.W_DEPTH,
-            "TOP_N": cfg.TOP_N,
-            "RUNOFF_COEFF": cfg.RUNOFF_COEFF,
-            "POND_DEPTH_M": cfg.POND_DEPTH_M,
-            "FREEBOARD_M": cfg.FREEBOARD_M,
-            "FALLBACK_RAIN_M": cfg.FALLBACK_RAIN_M,
-            "METEO_START": cfg.METEO_START,
-            "METEO_END": cfg.METEO_END,
-            "MAX_UPLOAD_MB": cfg.MAX_UPLOAD_MB,
-        },
-    })
-
 
 def _run_analysis(req):
     t0 = time.time()
@@ -131,11 +90,11 @@ def _run_analysis(req):
     mb = f.tell() / (1024 * 1024)
     f.seek(0)
 
-    if mb > cfg.MAX_UPLOAD_MB:
+    if mb > MAX_UPLOAD_MB:
         return jsonify({
             "error": (
                 f"File {mb:.1f} MB > "
-                f"{cfg.MAX_UPLOAD_MB} MB limit."
+                f"{MAX_UPLOAD_MB} MB limit."
             )
         }), 413
 
@@ -143,11 +102,11 @@ def _run_analysis(req):
     try:
         top_n = max(
             1,
-            min(int(req.form.get("top_n", cfg.TOP_N)), 10)
+            min(int(req.form.get("top_n", TOP_N)), 10)
         )
         grid_res = max(
             50,
-            min(int(req.form.get("grid_res", cfg.GRID_RESOLUTION)), 300)
+            min(int(req.form.get("grid_res", GRID_RESOLUTION)), 300)
         )
     except ValueError:
         return jsonify({
@@ -193,7 +152,7 @@ def _run_analysis(req):
         grid_size = dem.shape[0] * dem.shape[1]
         river_excl = binary_dilation(
             river_mask,
-            iterations=cfg.RIVER_BUFFER_CELLS,
+            iterations=RIVER_BUFFER_CELLS,
         ).astype(bool)
 
         excl_frac = river_excl.sum() / grid_size

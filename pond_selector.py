@@ -13,19 +13,17 @@ import logging
 import requests
 import numpy as np
 
-from config import (
-    W_CATCHMENT,
-    W_SLOPE,
-    W_DEPTH,
-    TOP_N,
-    RUNOFF_COEFF,
-    POND_DEPTH_M,
-    FREEBOARD_M,
-    METEO_START,
-    METEO_END,
-    METEO_TIMEOUT,
-    FALLBACK_RAIN_M,
-)
+W_CATCHMENT: float = 0.45
+W_SLOPE: float = 0.30
+W_DEPTH: float = 0.25
+TOP_N: int = 5
+RUNOFF_COEFF: float = 0.30
+POND_DEPTH_M: float = 3.0
+FREEBOARD_M: float = 0.50
+METEO_START: str = "2018-01-01"
+METEO_END: str = "2025-12-31"
+METEO_TIMEOUT: int = 10
+FALLBACK_RAIN_M: float = 0.800
 
 
 log = logging.getLogger(__name__)

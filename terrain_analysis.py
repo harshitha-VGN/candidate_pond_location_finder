@@ -17,7 +17,8 @@ import logging
 
 import numpy as np
 
-from config import RIVER_PERCENTILE, DEM_PERTURB
+RIVER_PERCENTILE: float = 90.0   # top 10% flow-acc = river
+DEM_PERTURB: float = 0.001       # metres - breaks flat-area flow ties
 
 
 log = logging.getLogger(__name__)

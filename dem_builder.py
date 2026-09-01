@@ -11,12 +11,10 @@ import numpy as np
 from scipy.interpolate import griddata
 from scipy.ndimage import gaussian_filter
 
-from config import (
-    GRID_RESOLUTION,
-    SAMPLE_SPACING_M,
-    SMOOTH_SIGMA,
-    INTERP_METHOD,
-)
+GRID_RESOLUTION: int = 120
+SAMPLE_SPACING_M: float = 20.0
+SMOOTH_SIGMA: float = 1.5
+INTERP_METHOD: str = "linear"
 
 
 log = logging.getLogger(__name__)
