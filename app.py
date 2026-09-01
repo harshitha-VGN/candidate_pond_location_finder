@@ -5,7 +5,6 @@ Routes
 ------
 GET  /health
 POST /analyzeContour
-POST /findCatchment
 
 Postman usage
 -------------
@@ -229,11 +228,6 @@ def _run_analysis(req):
 
 @app.route("/analyzeContour", methods=["POST"])
 def analyze_contour():
-    return _run_analysis(request)
-
-
-@app.route("/findCatchment", methods=["POST"])
-def find_catchment():
     return _run_analysis(request)
 
 

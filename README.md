@@ -99,36 +99,7 @@ The main processing sequence is:
 The file also contains the following API routes:
 
 * `GET /health`
-* `GET /api/info`
 * `POST /analyzeContour`
-* `POST /findCatchment`
-
-### `config.py`
-
-`config.py` contains the parameters used by the different parts of the application.
-
-Keeping the values here makes it easier to change the behaviour of the analysis without modifying the algorithms themselves.
-
-The configuration includes values for:
-
-* DEM resolution
-* Contour sampling distance
-* DEM smoothing
-* Flow accumulation percentile
-* River buffer
-* River-sink filtering
-* Minimum elevation
-* Minimum and maximum catchment size
-* Minimum distance between pond candidates
-* Minimum depression depth
-* Candidate scoring weights
-* Runoff coefficient
-* Pond depth
-* Freeboard
-* Rainfall dates
-* Rainfall fallback value
-* Open-Meteo timeout
-* Maximum upload size
 
 ### `kml_parser.py`
 
@@ -297,14 +268,6 @@ Example response:
 }
 ```
 
-### API Information
-
-```http
-GET /api/info
-```
-
-This returns information about the available endpoints and the configuration values being used by the application.
-
 ### Analyze Contours
 
 ```http
@@ -337,14 +300,6 @@ curl -X POST http://localhost:5000/analyzeContour \
 
 The response is a GeoJSON `FeatureCollection` containing the selected pond candidates and their associated information.
 
-### Find Catchment
-
-```http
-POST /findCatchment
-```
-
-This route is an alias of `/analyzeContour` and uses the same processing pipeline.
-
 ## Output
 
 The generated GeoJSON contains information about the selected candidates, including:
@@ -359,7 +314,6 @@ The generated GeoJSON contains information about the selected candidates, includ
 * Catchment cell count
 * Flow accumulation
 * Annual rainfall
-* Rainfall source
 * Estimated annual runoff
 * Runoff coefficient
 * Recommended pond depth
@@ -386,8 +340,7 @@ The GeoJSON can be opened in GIS or web-mapping applications to visualize the ca
 ```text
 project/
 │
-├── app.py                  # Flask API and main processing pipeline
-├── config.py               # Analysis parameters
+├── app.py                  # Flask API and main processing pipeline            
 ├── kml_parser.py           # KML/KMZ parsing
 ├── dem_builder.py          # DEM generation
 ├── terrain_analysis.py     # Terrain and flow analysis
