@@ -12,9 +12,9 @@ An end-to-end AI-assisted geospatial decision-support platform for village pond 
 ## 📌 Project Information
 
 - **GitHub Repository:** [https://github.com/harshitha-VGN/candidate_pond_location_finder.git](https://github.com/harshitha-VGN/candidate_pond_location_finder.git)
-- **Live Web Application URL:** `http://10.1.75.79:5245/` (or `http://localhost:5000/` locally)
-- **Backend API Endpoint:** `http://10.1.75.79:5245/analyzeContour` (or `http://localhost:5000/analyzeContour`)
-- **API Health Check:** `http://10.1.75.79:5245/health` (or `http://localhost:5000/health`)
+- **Live Web Application URL:** `http://10.1.75.79:5245/`
+- **Backend API Endpoint:** `http://10.1.75.79:5245/analyzeContour` 
+- **API Health Check:** `http://10.1.75.79:5245/health` 
 
 ---
 
