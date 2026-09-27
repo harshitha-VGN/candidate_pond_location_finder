@@ -731,33 +731,135 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Quick live filter for village dropdown
-  if (inputVillageSearch && selectVillage) {
+  // ================= LIVE OMNI-VILLAGE SEARCH & NOMINATIM AUTOCOMPLETE ================= //
+  const villageSearchResults = document.getElementById("village-search-results");
+  const villageSearchSpinner = document.getElementById("village-search-spinner");
+  let villageSearchTimer = null;
+
+  if (inputVillageSearch) {
     inputVillageSearch.addEventListener("input", (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      const options = selectVillage.querySelectorAll("option:not([disabled])");
-      let firstMatch = null;
+      const q = e.target.value.trim();
+      clearTimeout(villageSearchTimer);
 
-      options.forEach(opt => {
-        const text = opt.textContent.toLowerCase();
-        const match = !q || text.includes(q);
-        opt.style.display = match ? "" : "none";
-        if (match && !firstMatch && q) firstMatch = opt;
-      });
+      // Filter local curated dropdown
+      if (selectVillage) {
+        const qLower = q.toLowerCase();
+        const options = selectVillage.querySelectorAll("option:not([disabled])");
+        options.forEach(opt => {
+          const match = !qLower || opt.textContent.toLowerCase().includes(qLower);
+          opt.style.display = match ? "" : "none";
+        });
+        selectVillage.querySelectorAll("optgroup").forEach(og => {
+          const visible = og.querySelectorAll("option:not([style*='display: none'])");
+          og.style.display = visible.length > 0 ? "" : "none";
+        });
+      }
 
-      selectVillage.querySelectorAll("optgroup").forEach(og => {
-        const visibleOpts = og.querySelectorAll("option:not([style*='display: none'])");
-        og.style.display = visibleOpts.length > 0 ? "" : "none";
-      });
+      if (q.length < 2) {
+        if (villageSearchResults) villageSearchResults.style.display = "none";
+        if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
+        return;
+      }
+
+      if (villageSearchSpinner) villageSearchSpinner.style.display = "block";
+
+      villageSearchTimer = setTimeout(async () => {
+        try {
+          const queryUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ", India")}&format=json&countrycodes=in&addressdetails=1&limit=6`;
+          const resp = await fetch(queryUrl, {
+            headers: { "Accept": "application/json" }
+          });
+
+          if (!resp.ok) throw new Error("Search failed");
+          const results = await resp.json();
+
+          if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
+          if (!villageSearchResults) return;
+
+          if (!results || results.length === 0) {
+            villageSearchResults.innerHTML = `
+              <div class="vsr-item" style="cursor: default; opacity: 0.7;">
+                <div class="vsr-title">No matching villages found</div>
+                <div class="vsr-subtitle">Try another village, taluk, or district name</div>
+              </div>`;
+            villageSearchResults.style.display = "flex";
+            return;
+          }
+
+          villageSearchResults.innerHTML = "";
+          results.forEach(item => {
+            const el = document.createElement("div");
+            el.className = "vsr-item";
+            const addr = item.address || {};
+            const villageName = addr.village || addr.suburb || addr.town || addr.hamlet || item.name || q;
+            const district = addr.state_district || addr.county || addr.district || "";
+            const state = addr.state || "";
+
+            el.innerHTML = `
+              <div class="vsr-title"><i class="fa-solid fa-location-dot text-cyan"></i> ${villageName}</div>
+              <div class="vsr-subtitle">${district ? district + ", " : ""}${state} (${parseFloat(item.lat).toFixed(3)}°, ${parseFloat(item.lon).toFixed(3)}°)</div>
+            `;
+
+            el.addEventListener("click", () => {
+              const lat = parseFloat(item.lat);
+              const lon = parseFloat(item.lon);
+              const dLat = 0.0225; // ~2.5 km radius
+              const dLon = 0.0300;
+
+              clearPreviousResults();
+
+              selectedBounds.minLat = lat - dLat;
+              selectedBounds.maxLat = lat + dLat;
+              selectedBounds.minLon = lon - dLon;
+              selectedBounds.maxLon = lon + dLon;
+              selectedBounds.presetKey = null;
+              selectedBounds.villageName = `${villageName} (${district || state})`;
+
+              if (badgeVillageTag) {
+                badgeVillageTag.textContent = villageName;
+              }
+              if (statusLocationName) {
+                statusLocationName.textContent = `Village: ${villageName} (${district || state})`;
+              }
+              if (selectVillage) {
+                selectVillage.value = "";
+              }
+
+              updateSelectorRectangle();
+              updateHandlePositions();
+
+              map.flyToBounds([
+                [selectedBounds.minLat, selectedBounds.minLon],
+                [selectedBounds.maxLat, selectedBounds.maxLon]
+              ], { padding: [50, 50], duration: 1.2 });
+
+              villageSearchResults.style.display = "none";
+              inputVillageSearch.value = `${villageName} (${district || state})`;
+            });
+
+            villageSearchResults.appendChild(el);
+          });
+
+          villageSearchResults.style.display = "flex";
+
+        } catch (err) {
+          console.warn("Village search error:", err);
+          if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
+        }
+      }, 350);
+    });
+
+    // Close search dropdown on click outside
+    document.addEventListener("click", (e) => {
+      if (villageSearchResults && !inputVillageSearch.contains(e.target) && !villageSearchResults.contains(e.target)) {
+        villageSearchResults.style.display = "none";
+      }
     });
 
     inputVillageSearch.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
-        const firstVisible = selectVillage.querySelector("option:not([disabled]):not([style*='display: none'])");
-        if (firstVisible) {
-          selectVillage.value = firstVisible.value;
-          selectVillage.dispatchEvent(new Event("change"));
-        }
+        const first = villageSearchResults ? villageSearchResults.querySelector(".vsr-item") : null;
+        if (first) first.click();
       }
     });
   }
@@ -916,7 +1018,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (ingestMode === "map") {
         const { minLon, minLat, maxLon, maxLat } = selectedBounds;
-        const kmlText = generateKmlFromBounds(minLon, minLat, maxLon, maxLat, 12);
+        if (loaderDesc) loaderDesc.textContent = "Querying Open-Elevation API for real village topography...";
+        const kmlText = await generateKmlFromBounds(minLon, minLat, maxLon, maxLat, 12);
         const kmlBlob = new Blob([kmlText], { type: "application/vnd.google-earth.kml+xml" });
         kmlFileToSend = new File([kmlBlob], "selected_watershed_contours.kml", { type: "application/vnd.google-earth.kml+xml" });
       } else {
@@ -1180,7 +1283,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (proofProcessingTime) proofProcessingTime.textContent = `⚡ ${(meta.processing_time_s || 1.48)}s`;
     if (proofGridRes) proofGridRes.textContent = `${meta.grid_resolution || 120} \u00D7 ${meta.grid_resolution || 120} cells`;
     if (proofElevRange && meta.elevation_range_m) {
-      proofElevRange.textContent = `${meta.elevation_range_m.min}m \u2192 ${meta.elevation_range_m.max}m`;
+      proofElevRange.textContent = `${meta.elevation_range_m.min}m → ${meta.elevation_range_m.max}m (Open-Elevation API)`;
     }
 
     if (candidates.length > 0) {

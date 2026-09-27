@@ -163,8 +163,10 @@
                 </div>
 
                 <div class="village-search-box">
-                  <input type="text" id="input-village-search" placeholder="Type to filter villages..." />
+                  <input type="text" id="input-village-search" placeholder="Search ANY village in India (e.g. Kyalanur, Sedam)..." autocomplete="off" />
                   <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                  <div class="village-search-spinner" id="village-search-spinner" style="display: none;"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+                  <div class="village-search-results" id="village-search-results" style="display: none;"></div>
                 </div>
               </div>
 
