@@ -190,14 +190,4 @@ curl -X POST http://localhost:5000/analyzeContour \
 4. **Target Storage & Pond Geometry:**
    $$V_{\text{target}} = 0.50 \times Q, \quad D_{\text{pond}} = 3.50\,\text{m}, \quad A_{\text{surface}} = \frac{V_{\text{target}}}{0.5 \times 3.0}, \quad R = \sqrt{\frac{A_{\text{surface}}}{\pi}}$$
 
----
-
-## 🏛️ CSD Themes & Architectural Highlights
-
-| CSD Theme | Implementation | Design Rationale |
-|---|---|---|
-| **REST API Design** | Flask `POST /analyzeContour` | Stateless RFC 7946 GeoJSON contract allowing independent frontend/backend evolution. |
-| **In-Memory Caching** | Coordinate hash cache in `pond_selector.py` | Reduces rainfall query latency from $\sim 800\,\text{ms}$ to $< 1\,\text{ms}$ for adjacent queries. |
-| **Modular Monolith** | Single-process NumPy pipeline | Eliminates inter-process matrix serialization latency for 2D DEM rasters. |
-| **Fault Resilience** | Default fallback constants ($800\,\text{mm}$) | Graceful system degradation when external meteorological services are unreachable. |
 
