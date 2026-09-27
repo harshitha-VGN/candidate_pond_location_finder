@@ -156,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusTotalYield = document.getElementById("status-total-yield");
   const statusWorkerNode = document.getElementById("status-worker-node");
   const statusLatency = document.getElementById("status-latency");
+  const btnCloseHud = document.getElementById("btn-close-hud");
 
   // DOM Elements - Basemap & Layer Toggles
   const pillBasemapSatellite = document.getElementById("pill-basemap-satellite");
@@ -174,6 +175,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const clusterModeRadios = document.querySelectorAll('input[name="cluster_mode"]');
   const btnPingAll = document.getElementById("btn-ping-all");
   const btnSaveCluster = document.getElementById("btn-save-cluster");
+
+  if (btnCloseHud) {
+    btnCloseHud.addEventListener("click", () => {
+      clearPreviousResults();
+    });
+  }
 
   // ================= 1. MAP INITIALIZATION ================= //
   function initMap() {
@@ -211,6 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Map Click / Draw interactions
     map.on("mousedown", (e) => {
       if (!isDrawingBox) return;
+      clearPreviousResults();
       drawStartLatLng = e.latlng;
       map.dragging.disable();
     });
@@ -332,6 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Direct drag on rectangle body
       selectorRectLayer.on("mousedown", (e) => {
+        clearPreviousResults();
         if (isDrawingBox) {
           // If drawing mode is on, start new bounding box even from inside the rectangle
           drawStartLatLng = e.latlng;
@@ -369,6 +378,55 @@ document.addEventListener("DOMContentLoaded", () => {
     if (lblCoordArea) lblCoordArea.textContent = `${areaHa} ha`;
     if (statusLocationName) {
       statusLocationName.textContent = `Selected Land Area (${areaKm2} km²)`;
+    }
+  }
+
+  function clearPreviousResults() {
+    const hasLayers = catchmentLayerGroup.getLayers().length > 0 ||
+                      pondSiteLayerGroup.getLayers().length > 0 ||
+                      volumeBadgesLayerGroup.getLayers().length > 0 ||
+                      markersLayerGroup.getLayers().length > 0;
+    if (!currentGeojson && !hasLayers) return;
+
+    // 1. Clear Map Result Layers
+    catchmentLayerGroup.clearLayers();
+    volumeBadgesLayerGroup.clearLayers();
+    pondSiteLayerGroup.clearLayers();
+    markersLayerGroup.clearLayers();
+
+    // 2. Hide Floating Top-Right Optimal Pond HUD
+    const floatingHud = document.getElementById("floating-kpi-hud");
+    if (floatingHud) floatingHud.style.display = "none";
+
+    // 3. Reset Drawer Panels to Empty/Ready State
+    const emptyOptimal = document.getElementById("empty-state-optimal");
+    const emptyLeaderboard = document.getElementById("empty-state-leaderboard");
+    const emptyCharts = document.getElementById("empty-state-charts");
+    const contentOptimal = document.getElementById("optimal-results-content");
+    const contentLeaderboard = document.getElementById("leaderboard-results-content");
+    const contentCharts = document.getElementById("charts-results-content");
+
+    if (emptyOptimal) emptyOptimal.style.display = "flex";
+    if (emptyLeaderboard) emptyLeaderboard.style.display = "flex";
+    if (emptyCharts) emptyCharts.style.display = "flex";
+
+    if (contentOptimal) contentOptimal.style.display = "none";
+    if (contentLeaderboard) contentLeaderboard.style.display = "none";
+    if (contentCharts) contentCharts.style.display = "none";
+
+    // 4. Reset Bottom Bar KPIs
+    if (statusTotalYield) statusTotalYield.textContent = "--";
+    if (statusLatency) statusLatency.textContent = "Ready to analyze";
+
+    // 5. Reset Cached Result State
+    currentGeojson = null;
+    if (lblCandidatesCount) lblCandidatesCount.textContent = "0 Sites";
+    if (candidatesListContainer) candidatesListContainer.innerHTML = "";
+
+    // 6. Switch Top Navigation Pill from Step 2 back to Step 1
+    if (navBtnInput && navBtnResults) {
+      navBtnInput.classList.add("active");
+      navBtnResults.classList.remove("active");
     }
   }
 
@@ -432,6 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Handlers for Center Move Anchor
   function onCenterDragStart(e) {
+    clearPreviousResults();
     isDraggingCenterHandle = true;
     centerDragStartLatLng = e.target.getLatLng();
     centerBoundsStart = { ...selectedBounds };
@@ -466,6 +525,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function onHandleDrag(e) {
+    clearPreviousResults();
     const handleId = e.target.handleId;
     const latlng = e.target.getLatLng();
 
@@ -504,6 +564,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Quick Extend & Shrink Functions (+25% / -25%)
   function extendBounds(factor) {
+    clearPreviousResults();
     const dLat = (selectedBounds.maxLat - selectedBounds.minLat) * factor / 2;
     const dLon = (selectedBounds.maxLon - selectedBounds.minLon) * factor / 2;
 
@@ -524,6 +585,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function nudgeBounds(direction) {
+    clearPreviousResults();
     const step = 0.005; // approx 550 meters
     if (direction === "north") selectedBounds.maxLat += step;
     else if (direction === "south") selectedBounds.minLat -= step;
@@ -549,6 +611,10 @@ document.addEventListener("DOMContentLoaded", () => {
       isDrawingBox = active;
     } else {
       isDrawingBox = !isDrawingBox;
+    }
+
+    if (isDrawingBox) {
+      clearPreviousResults();
     }
 
     drawStartLatLng = null;
@@ -581,6 +647,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (btnToolResetBox) {
     btnToolResetBox.addEventListener("click", () => {
+      clearPreviousResults();
       selectedBounds.minLat = 13.120;
       selectedBounds.maxLat = 13.165;
       selectedBounds.minLon = 78.115;
@@ -599,6 +666,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Preset Watershed Click Handlers
   presetChips.forEach((chip) => {
     chip.addEventListener("click", () => {
+      clearPreviousResults();
       presetChips.forEach(c => c.classList.remove("active"));
       chip.classList.add("active");
 
@@ -622,6 +690,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= 3. INGESTION MODE & DRAWER NAVIGATION ================= //
   tabModeMap.addEventListener("click", () => {
+    if (ingestMode !== "map") {
+      clearPreviousResults();
+    }
     ingestMode = "map";
     tabModeMap.classList.add("active");
     tabModeUpload.classList.remove("active");
@@ -632,6 +703,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   tabModeUpload.addEventListener("click", () => {
+    if (ingestMode !== "upload") {
+      clearPreviousResults();
+    }
     ingestMode = "upload";
     tabModeUpload.classList.add("active");
     tabModeMap.classList.remove("active");
@@ -715,6 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function handleFileSelected(file) {
+    clearPreviousResults();
     currentFile = file;
     kmlDropzone.style.display = "none";
     fileReadyBanner.style.display = "flex";
@@ -723,6 +798,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   btnClearFile.addEventListener("click", () => {
+    clearPreviousResults();
     currentFile = null;
     fileInput.value = "";
     fileReadyBanner.style.display = "none";
