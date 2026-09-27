@@ -201,10 +201,3 @@ curl -X POST http://localhost:5000/analyzeContour \
 | **Modular Monolith** | Single-process NumPy pipeline | Eliminates inter-process matrix serialization latency for 2D DEM rasters. |
 | **Fault Resilience** | Default fallback constants ($800\,\text{mm}$) | Graceful system degradation when external meteorological services are unreachable. |
 
----
-
-## 📜 Authors & Acknowledgments
-
-- **Author:** Harshitha VGN
-- **Course:** Computer System Design (CSD Assignment 1)
-- **External Data Providers:** Open-Meteo Historical Weather API, Esri World Imagery, OpenStreetMap contributors
