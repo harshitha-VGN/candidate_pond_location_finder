@@ -552,7 +552,7 @@ body {
   padding: 13px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -578,59 +578,48 @@ body {
   letter-spacing: 0.5px;
 }
 
-.village-select-wrapper {
-  position: relative;
-  width: 100%;
+.vsc-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
 }
 
-.village-dropdown {
-  width: 100%;
-  padding: 9px 12px 9px 34px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-accent);
-  border-radius: var(--radius-sm);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  transition: all 0.2s;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
-}
-
-.village-dropdown:focus {
-  border-color: var(--cyan-light);
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-  background-color: rgba(15, 23, 42, 0.95);
-}
-
-.village-dropdown optgroup {
-  background: #0f172a;
+.vsc-live-badge {
+  font-size: 9px;
   color: var(--cyan-light);
   font-weight: 700;
-  font-size: 11px;
+  background: rgba(56, 189, 248, 0.1);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.village-dropdown option {
-  background: #1e293b;
-  color: #f8fafc;
-  font-weight: 500;
-  font-size: 12px;
-  padding: 6px;
+.vsc-count-badge {
+  font-size: 10px;
+  color: #a78bfa;
+  font-weight: 700;
+  background: rgba(139, 92, 246, 0.12);
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(139, 92, 246, 0.25);
 }
 
-.village-input-icon {
-  position: absolute;
-  left: 11px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--cyan-light);
-  font-size: 13px;
-  pointer-events: none;
+/* 1. Omni Search Wrapper */
+.village-omni-search-wrapper {
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-sm);
+  padding: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .village-search-box {
@@ -640,38 +629,56 @@ body {
 
 .village-search-box input {
   width: 100%;
-  padding: 7px 10px 7px 30px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-subtle);
+  padding: 9px 12px 9px 34px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--border-accent);
   border-radius: var(--radius-sm);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
   outline: none;
   transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 .village-search-box input:focus {
   border-color: var(--cyan-light);
-  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+  background: rgba(15, 23, 42, 1);
+}
+
+.village-search-box input::placeholder {
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 400;
 }
 
 .village-search-box .search-icon {
   position: absolute;
-  left: 10px;
+  left: 11px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-muted);
-  font-size: 11px;
+  color: var(--cyan-light);
+  font-size: 12px;
   pointer-events: none;
 }
 
 .village-search-spinner {
   position: absolute;
-  right: 10px;
+  right: 11px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--cyan-light);
-  font-size: 11px;
+  font-size: 12px;
+}
+
+.search-helper-text {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+
+.search-helper-text strong {
+  color: var(--cyan-light);
 }
 
 .village-search-results {
@@ -682,10 +689,10 @@ body {
   background: #0f172a;
   border: 1px solid var(--border-accent);
   border-radius: var(--radius-sm);
-  max-height: 220px;
+  max-height: 240px;
   overflow-y: auto;
   z-index: 1000;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
 }
@@ -705,7 +712,7 @@ body {
 }
 
 .vsr-item:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.18);
 }
 
 .vsr-title {
@@ -723,6 +730,141 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* 2. Quick Pick Villages Strip */
+.quick-villages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.quick-villages-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.quick-village-chip {
+  padding: 4px 9px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.quick-village-chip:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: var(--cyan-light);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.quick-village-chip.active {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: var(--cyan-light);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* 3. Directory Section & State Filter Pills */
+.village-directory-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+  padding-top: 10px;
+}
+
+.state-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.state-pill-btn {
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.state-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.state-pill-btn.active {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: var(--cyan-light);
+  color: var(--cyan-light);
+  font-weight: 700;
+}
+
+.village-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.village-dropdown {
+  width: 100%;
+  padding: 8px 12px 8px 32px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px;
+}
+
+.village-dropdown:focus {
+  border-color: var(--cyan-light);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+  background-color: rgba(15, 23, 42, 0.98);
+}
+
+.village-dropdown optgroup {
+  background: #0f172a;
+  color: var(--cyan-light);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 4px;
+}
+
+.village-dropdown option {
+  background: #1e293b;
+  color: #f8fafc;
+  font-weight: 500;
+  font-size: 11px;
+  padding: 5px;
+}
+
+.village-input-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cyan-light);
+  font-size: 12px;
+  pointer-events: none;
 }
 
 /* ================= CLEAN LAND AREA SELECTION CARD ================= */

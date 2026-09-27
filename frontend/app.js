@@ -671,7 +671,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= VILLAGE BASED SELECTION DATABASE & HANDLERS ================= //
   const VILLAGES_LIST = [
-    // Kolar District
+    // 1. KARNATAKA - Kolar
     { id: "vokkaleri", name: "Vokkaleri Village", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.100, maxLat: 13.150, minLon: 78.160, maxLon: 78.210 }, center: [13.125, 78.185] },
     { id: "vemagal", name: "Vemagal Watershed", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.165, maxLat: 13.215, minLon: 77.995, maxLon: 78.045 }, center: [13.190, 78.020] },
     { id: "kyalanur", name: "Kyalanur Village", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.210, maxLat: 13.260, minLon: 78.190, maxLon: 78.240 }, center: [13.235, 78.215] },
@@ -680,56 +680,238 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "narasapura", name: "Narasapura Rural", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.130, maxLat: 13.180, minLon: 77.960, maxLon: 78.010 }, center: [13.155, 77.985] },
     { id: "bangarapet", name: "Bangarapet Rural", taluk: "Bangarapet", district: "Kolar", state: "Karnataka", bounds: { minLat: 12.960, maxLat: 13.010, minLon: 78.175, maxLon: 78.225 }, center: [12.985, 78.200] },
     { id: "mulbagal", name: "Mulbagal Watershed", taluk: "Mulbagal", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.140, maxLat: 13.190, minLon: 78.370, maxLon: 78.420 }, center: [13.165, 78.395] },
+    { id: "srinivaspur", name: "Srinivaspur Village", taluk: "Srinivaspur", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.315, maxLat: 13.365, minLon: 78.190, maxLon: 78.240 }, center: [13.338, 78.214] },
+    { id: "bethamangala", name: "Bethamangala Panchayat", taluk: "Bangarapet", district: "Kolar", state: "Karnataka", bounds: { minLat: 12.975, maxLat: 13.025, minLon: 78.295, maxLon: 78.345 }, center: [12.998, 78.318] },
 
-    // Anantapur District
+    // KARNATAKA - Chikkaballapur
+    { id: "chintamani", name: "Chintamani Watershed", taluk: "Chintamani", district: "Chikkaballapur", state: "Karnataka", bounds: { minLat: 13.380, maxLat: 13.430, minLon: 78.035, maxLon: 78.085 }, center: [13.402, 78.058] },
+    { id: "sidlaghatta", name: "Sidlaghatta Rural", taluk: "Sidlaghatta", district: "Chikkaballapur", state: "Karnataka", bounds: { minLat: 13.365, maxLat: 13.415, minLon: 77.840, maxLon: 77.890 }, center: [13.391, 77.864] },
+    { id: "gauribidanur", name: "Gauribidanur Watershed", taluk: "Gauribidanur", district: "Chikkaballapur", state: "Karnataka", bounds: { minLat: 13.590, maxLat: 13.640, minLon: 77.495, maxLon: 77.545 }, center: [13.612, 77.518] },
+    { id: "bagepalli", name: "Bagepalli Village", taluk: "Bagepalli", district: "Chikkaballapur", state: "Karnataka", bounds: { minLat: 13.760, maxLat: 13.810, minLon: 77.770, maxLon: 77.820 }, center: [13.784, 77.792] },
+    { id: "gudibande", name: "Gudibande Panchayat", taluk: "Gudibande", district: "Chikkaballapur", state: "Karnataka", bounds: { minLat: 13.645, maxLat: 13.695, minLon: 77.680, maxLon: 77.730 }, center: [13.670, 77.701] },
+    { id: "chelur", name: "Chelur Gram Panchayat", taluk: "Chelur", district: "Chikkaballapur", state: "Karnataka", bounds: { minLat: 13.505, maxLat: 13.555, minLon: 78.060, maxLon: 78.110 }, center: [13.528, 78.083] },
+
+    // KARNATAKA - Tumakuru
+    { id: "pavagada", name: "Pavagada Village", taluk: "Pavagada", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 14.075, maxLat: 14.125, minLon: 77.250, maxLon: 77.300 }, center: [14.100, 77.275] },
+    { id: "madhugiri", name: "Madhugiri Watershed", taluk: "Madhugiri", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.635, maxLat: 13.685, minLon: 77.185, maxLon: 77.235 }, center: [13.660, 77.210] },
+    { id: "sira", name: "Sira Taluk Rural", taluk: "Sira", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.720, maxLat: 13.770, minLon: 76.880, maxLon: 76.930 }, center: [13.745, 76.905] },
+    { id: "gubbi", name: "Gubbi Panchayat", taluk: "Gubbi", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.290, maxLat: 13.340, minLon: 76.915, maxLon: 76.965 }, center: [13.312, 76.940] },
+    { id: "koratagere", name: "Koratagere Village", taluk: "Koratagere", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.500, maxLat: 13.550, minLon: 77.215, maxLon: 77.265 }, center: [13.522, 77.238] },
+    { id: "kunigal", name: "Kunigal Rural", taluk: "Kunigal", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.000, maxLat: 13.050, minLon: 77.005, maxLon: 77.055 }, center: [13.023, 77.028] },
+    { id: "tiptur", name: "Tiptur Watershed", taluk: "Tiptur", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.230, maxLat: 13.280, minLon: 76.455, maxLon: 76.505 }, center: [13.256, 76.478] },
+    { id: "chikkanayakanahalli", name: "Chikkanayakanahalli", taluk: "CN Halli", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.395, maxLat: 13.445, minLon: 76.595, maxLon: 76.645 }, center: [13.418, 76.619] },
+
+    // KARNATAKA - Chitradurga & Davanagere
+    { id: "challakere", name: "Challakere Rural", taluk: "Challakere", district: "Chitradurga", state: "Karnataka", bounds: { minLat: 14.290, maxLat: 14.340, minLon: 76.625, maxLon: 76.675 }, center: [14.313, 76.650] },
+    { id: "hiriyur", name: "Hiriyur Watershed", taluk: "Hiriyur", district: "Chitradurga", state: "Karnataka", bounds: { minLat: 13.920, maxLat: 13.970, minLon: 76.595, maxLon: 76.645 }, center: [13.945, 76.618] },
+    { id: "holalkere", name: "Holalkere Village", taluk: "Holalkere", district: "Chitradurga", state: "Karnataka", bounds: { minLat: 14.010, maxLat: 14.060, minLon: 76.160, maxLon: 76.210 }, center: [14.032, 76.184] },
+    { id: "hosadurga", name: "Hosadurga Panchayat", taluk: "Hosadurga", district: "Chitradurga", state: "Karnataka", bounds: { minLat: 13.775, maxLat: 13.825, minLon: 76.265, maxLon: 76.315 }, center: [13.798, 76.287] },
+    { id: "molakalmuru", name: "Molakalmuru Rural", taluk: "Molakalmuru", district: "Chitradurga", state: "Karnataka", bounds: { minLat: 14.700, maxLat: 14.750, minLon: 76.730, maxLon: 76.780 }, center: [14.725, 76.756] },
+    { id: "jagalur", name: "Jagalur Village", taluk: "Jagalur", district: "Davanagere", state: "Karnataka", bounds: { minLat: 14.490, maxLat: 14.540, minLon: 76.320, maxLon: 76.370 }, center: [14.516, 76.342] },
+    { id: "harapanahalli", name: "Harapanahalli Watershed", taluk: "Harapanahalli", district: "Vijayanagara", state: "Karnataka", bounds: { minLat: 14.770, maxLat: 14.820, minLon: 75.970, maxLon: 76.020 }, center: [14.794, 75.992] },
+    { id: "channagiri", name: "Channagiri Rural", taluk: "Channagiri", district: "Davanagere", state: "Karnataka", bounds: { minLat: 14.000, maxLat: 14.050, minLon: 75.900, maxLon: 75.950 }, center: [14.025, 75.926] },
+    { id: "honnali", name: "Honnali Panchayat", taluk: "Honnali", district: "Davanagere", state: "Karnataka", bounds: { minLat: 14.220, maxLat: 14.270, minLon: 75.620, maxLon: 75.670 }, center: [14.244, 75.645] },
+
+    // KARNATAKA - Bellary, Raichur & Kalaburagi
+    { id: "kudligi", name: "Kudligi Village", taluk: "Kudligi", district: "Vijayanagara", state: "Karnataka", bounds: { minLat: 14.875, maxLat: 14.925, minLon: 76.365, maxLon: 76.415 }, center: [14.901, 76.388] },
+    { id: "sandur", name: "Sandur Watershed", taluk: "Sandur", district: "Bellary", state: "Karnataka", bounds: { minLat: 15.060, maxLat: 15.110, minLon: 76.525, maxLon: 76.575 }, center: [15.086, 76.548] },
+    { id: "siruguppa", name: "Siruguppa Rural", taluk: "Siruguppa", district: "Bellary", state: "Karnataka", bounds: { minLat: 15.610, maxLat: 15.660, minLon: 76.870, maxLon: 76.920 }, center: [15.632, 76.896] },
+    { id: "kampli", name: "Kampli Panchayat", taluk: "Kampli", district: "Bellary", state: "Karnataka", bounds: { minLat: 15.375, maxLat: 15.425, minLon: 76.575, maxLon: 76.625 }, center: [15.399, 76.598] },
+    { id: "manvi", name: "Manvi Rural", taluk: "Manvi", district: "Raichur", state: "Karnataka", bounds: { minLat: 15.965, maxLat: 16.015, minLon: 77.025, maxLon: 77.075 }, center: [15.991, 77.050] },
+    { id: "sindhanur", name: "Sindhanur Watershed", taluk: "Sindhanur", district: "Raichur", state: "Karnataka", bounds: { minLat: 15.740, maxLat: 15.790, minLon: 76.735, maxLon: 76.785 }, center: [15.766, 76.760] },
+    { id: "devadurga", name: "Devadurga Village", taluk: "Devadurga", district: "Raichur", state: "Karnataka", bounds: { minLat: 16.395, maxLat: 16.445, minLon: 76.915, maxLon: 76.965 }, center: [16.421, 76.938] },
+    { id: "lingsugur", name: "Lingsugur Panchayat", taluk: "Lingsugur", district: "Raichur", state: "Karnataka", bounds: { minLat: 16.135, maxLat: 16.185, minLon: 76.500, maxLon: 76.550 }, center: [16.158, 76.524] },
+    { id: "maski", name: "Maski Village", taluk: "Maski", district: "Raichur", state: "Karnataka", bounds: { minLat: 15.935, maxLat: 15.985, minLon: 76.640, maxLon: 76.690 }, center: [15.961, 76.663] },
+    { id: "sedam", name: "Sedam Taluk", taluk: "Sedam", district: "Kalaburagi", state: "Karnataka", bounds: { minLat: 17.155, maxLat: 17.205, minLon: 77.265, maxLon: 77.315 }, center: [17.181, 77.291] },
+    { id: "chincholi", name: "Chincholi Village", taluk: "Chincholi", district: "Kalaburagi", state: "Karnataka", bounds: { minLat: 17.440, maxLat: 17.490, minLon: 77.400, maxLon: 77.450 }, center: [17.466, 77.426] },
+    { id: "aland", name: "Aland Watershed", taluk: "Aland", district: "Kalaburagi", state: "Karnataka", bounds: { minLat: 17.540, maxLat: 17.590, minLon: 76.545, maxLon: 76.595 }, center: [17.564, 76.568] },
+    { id: "afzalpur", name: "Afzalpur Rural", taluk: "Afzalpur", district: "Kalaburagi", state: "Karnataka", bounds: { minLat: 17.175, maxLat: 17.225, minLon: 76.330, maxLon: 76.380 }, center: [17.202, 76.356] },
+    { id: "jewargi", name: "Jewargi Panchayat", taluk: "Jewargi", district: "Kalaburagi", state: "Karnataka", bounds: { minLat: 16.995, maxLat: 17.045, minLon: 76.745, maxLon: 76.795 }, center: [17.018, 76.768] },
+
+    // KARNATAKA - Ramanagara & Mandya
+    { id: "kanakapura", name: "Kanakapura Watershed", taluk: "Kanakapura", district: "Ramanagara", state: "Karnataka", bounds: { minLat: 12.525, maxLat: 12.575, minLon: 77.390, maxLon: 77.440 }, center: [12.548, 77.416] },
+    { id: "magadi", name: "Magadi Rural", taluk: "Magadi", district: "Ramanagara", state: "Karnataka", bounds: { minLat: 12.935, maxLat: 12.985, minLon: 77.205, maxLon: 77.255 }, center: [12.958, 77.228] },
+    { id: "malavalli", name: "Malavalli Village", taluk: "Malavalli", district: "Mandya", state: "Karnataka", bounds: { minLat: 12.360, maxLat: 12.410, minLon: 77.035, maxLon: 77.085 }, center: [12.386, 77.058] },
+    { id: "nagamangala", name: "Nagamangala Rural", taluk: "Nagamangala", district: "Mandya", state: "Karnataka", bounds: { minLat: 12.800, maxLat: 12.850, minLon: 76.735, maxLon: 76.785 }, center: [12.822, 76.758] },
+
+    // 2. ANDHRA PRADESH - Anantapur
     { id: "rapthadu", name: "Rapthadu Village", taluk: "Anantapur", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.590, maxLat: 14.640, minLon: 77.560, maxLon: 77.610 }, center: [14.615, 77.585] },
     { id: "bukkaraya", name: "Bukkarayasamudram", taluk: "Anantapur", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.680, maxLat: 14.730, minLon: 77.640, maxLon: 77.690 }, center: [14.705, 77.665] },
     { id: "kudair", name: "Kudair Village", taluk: "Kudair", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.710, maxLat: 14.760, minLon: 77.400, maxLon: 77.450 }, center: [14.735, 77.425] },
     { id: "kalyandurg", name: "Kalyandurg Watershed", taluk: "Kalyandurg", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.525, maxLat: 14.575, minLon: 77.085, maxLon: 77.135 }, center: [14.550, 77.110] },
     { id: "dharmavaram", name: "Dharmavaram Rural", taluk: "Dharmavaram", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.390, maxLat: 14.440, minLon: 77.695, maxLon: 77.745 }, center: [14.415, 77.720] },
     { id: "penukonda", name: "Penukonda Watershed", taluk: "Penukonda", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.060, maxLat: 14.110, minLon: 77.565, maxLon: 77.615 }, center: [14.085, 77.590] },
+    { id: "gooty", name: "Gooty Rural", taluk: "Gooty", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 15.090, maxLat: 15.140, minLon: 77.610, maxLon: 77.660 }, center: [15.116, 77.634] },
+    { id: "tadipatri", name: "Tadipatri Watershed", taluk: "Tadipatri", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.885, maxLat: 14.935, minLon: 77.985, maxLon: 78.035 }, center: [14.908, 78.010] },
+    { id: "uravakonda", name: "Uravakonda Village", taluk: "Uravakonda", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.920, maxLat: 14.970, minLon: 77.230, maxLon: 77.280 }, center: [14.945, 77.256] },
+    { id: "beluguppa", name: "Beluguppa Panchayat", taluk: "Beluguppa", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.695, maxLat: 14.745, minLon: 77.120, maxLon: 77.170 }, center: [14.721, 77.142] },
 
-    // Tumakuru District
-    { id: "pavagada", name: "Pavagada Village", taluk: "Pavagada", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 14.075, maxLat: 14.125, minLon: 77.250, maxLon: 77.300 }, center: [14.100, 77.275] },
-    { id: "madhugiri", name: "Madhugiri Watershed", taluk: "Madhugiri", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.635, maxLat: 13.685, minLon: 77.185, maxLon: 77.235 }, center: [13.660, 77.210] },
-    { id: "sira", name: "Sira Taluk Rural", taluk: "Sira", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.720, maxLat: 13.770, minLon: 76.880, maxLon: 76.930 }, center: [13.745, 76.905] },
+    // ANDHRA PRADESH - Sri Sathya Sai
+    { id: "puttaparthi", name: "Puttaparthi Rural", taluk: "Puttaparthi", district: "Sri Sathya Sai", state: "Andhra Pradesh", bounds: { minLat: 14.140, maxLat: 14.190, minLon: 77.785, maxLon: 77.835 }, center: [14.167, 77.811] },
+    { id: "kadiri", name: "Kadiri Watershed", taluk: "Kadiri", district: "Sri Sathya Sai", state: "Andhra Pradesh", bounds: { minLat: 14.090, maxLat: 14.140, minLon: 78.140, maxLon: 78.190 }, center: [14.113, 78.163] },
+    { id: "gorantla", name: "Gorantla Village", taluk: "Gorantla", district: "Sri Sathya Sai", state: "Andhra Pradesh", bounds: { minLat: 13.970, maxLat: 14.020, minLon: 77.745, maxLon: 77.795 }, center: [13.993, 77.771] },
+    { id: "madakasira", name: "Madakasira Panchayat", taluk: "Madakasira", district: "Sri Sathya Sai", state: "Andhra Pradesh", bounds: { minLat: 13.915, maxLat: 13.965, minLon: 77.245, maxLon: 77.295 }, center: [13.938, 77.271] },
+    { id: "hindupur", name: "Hindupur Rural", taluk: "Hindupur", district: "Sri Sathya Sai", state: "Andhra Pradesh", bounds: { minLat: 13.805, maxLat: 13.855, minLon: 77.470, maxLon: 77.520 }, center: [13.829, 77.493] },
 
-    // Chittoor District
+    // ANDHRA PRADESH - Chittoor
     { id: "punganur", name: "Punganur Watershed", taluk: "Punganur", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.340, maxLat: 13.390, minLon: 78.555, maxLon: 78.605 }, center: [13.365, 78.580] },
-    { id: "madanapalle", name: "Madanapalle Rural", taluk: "Madanapalle", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.525, maxLat: 13.575, minLon: 78.475, maxLon: 78.525 }, center: [13.550, 78.500] }
+    { id: "madanapalle", name: "Madanapalle Rural", taluk: "Madanapalle", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.525, maxLat: 13.575, minLon: 78.475, maxLon: 78.525 }, center: [13.550, 78.500] },
+    { id: "palamaner", name: "Palamaner Village", taluk: "Palamaner", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.175, maxLat: 13.225, minLon: 78.725, maxLon: 78.775 }, center: [13.201, 78.751] },
+    { id: "kuppam", name: "Kuppam Rural", taluk: "Kuppam", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 12.725, maxLat: 12.775, minLon: 78.340, maxLon: 78.390 }, center: [12.752, 78.366] },
+    { id: "bangarupalem", name: "Bangarupalem Panchayat", taluk: "Bangarupalem", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.170, maxLat: 13.220, minLon: 78.940, maxLon: 78.990 }, center: [13.194, 78.966] },
+    { id: "somala", name: "Somala Watershed", taluk: "Somala", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.425, maxLat: 13.475, minLon: 78.810, maxLon: 78.860 }, center: [13.448, 78.835] },
+    { id: "chowdepalle", name: "Chowdepalle Village", taluk: "Chowdepalle", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.395, maxLat: 13.445, minLon: 78.595, maxLon: 78.645 }, center: [13.421, 78.618] },
+
+    // ANDHRA PRADESH - YSR Kadapa & Kurnool
+    { id: "rayachoti", name: "Rayachoti Watershed", taluk: "Rayachoti", district: "Annamayya", state: "Andhra Pradesh", bounds: { minLat: 14.035, maxLat: 14.085, minLon: 78.730, maxLon: 78.780 }, center: [14.058, 78.752] },
+    { id: "pulivendula", name: "Pulivendula Village", taluk: "Pulivendula", district: "Kadapa", state: "Andhra Pradesh", bounds: { minLat: 14.395, maxLat: 14.445, minLon: 78.210, maxLon: 78.260 }, center: [14.418, 78.232] },
+    { id: "jammalamadugu", name: "Jammalamadugu", taluk: "Jammalamadugu", district: "Kadapa", state: "Andhra Pradesh", bounds: { minLat: 14.815, maxLat: 14.865, minLon: 78.365, maxLon: 78.415 }, center: [14.839, 78.388] },
+    { id: "badvel", name: "Badvel Rural", taluk: "Badvel", district: "Kadapa", state: "Andhra Pradesh", bounds: { minLat: 14.720, maxLat: 14.770, minLon: 79.035, maxLon: 79.085 }, center: [14.743, 79.058] },
+    { id: "kamalapuram", name: "Kamalapuram Panchayat", taluk: "Kamalapuram", district: "Kadapa", state: "Andhra Pradesh", bounds: { minLat: 14.565, maxLat: 14.615, minLon: 78.650, maxLon: 78.700 }, center: [14.588, 78.672] },
+    { id: "adoni", name: "Adoni Watershed", taluk: "Adoni", district: "Kurnool", state: "Andhra Pradesh", bounds: { minLat: 15.610, maxLat: 15.660, minLon: 77.250, maxLon: 77.300 }, center: [15.632, 77.276] },
+    { id: "alur", name: "Alur Village", taluk: "Alur", district: "Kurnool", state: "Andhra Pradesh", bounds: { minLat: 15.280, maxLat: 15.330, minLon: 77.220, maxLon: 77.270 }, center: [15.305, 77.245] },
+    { id: "pattikonda", name: "Pattikonda Panchayat", taluk: "Pattikonda", district: "Kurnool", state: "Andhra Pradesh", bounds: { minLat: 15.380, maxLat: 15.430, minLon: 77.495, maxLon: 77.545 }, center: [15.402, 77.518] },
+    { id: "dhone", name: "Dhone Rural", taluk: "Dhone", district: "Kurnool", state: "Andhra Pradesh", bounds: { minLat: 15.400, maxLat: 15.450, minLon: 77.845, maxLon: 77.895 }, center: [15.422, 77.871] },
+    { id: "yemmiganur", name: "Yemmiganur Watershed", taluk: "Yemmiganur", district: "Kurnool", state: "Andhra Pradesh", bounds: { minLat: 15.710, maxLat: 15.760, minLon: 77.460, maxLon: 77.510 }, center: [15.736, 77.482] },
+
+    // 3. TAMIL NADU - Krishnagiri & Dharmapuri
+    { id: "hosur", name: "Hosur Rural", taluk: "Hosur", district: "Krishnagiri", state: "Tamil Nadu", bounds: { minLat: 12.715, maxLat: 12.765, minLon: 77.800, maxLon: 77.850 }, center: [12.741, 77.825] },
+    { id: "denkanikottai", name: "Denkanikottai Watershed", taluk: "Denkanikottai", district: "Krishnagiri", state: "Tamil Nadu", bounds: { minLat: 12.505, maxLat: 12.555, minLon: 77.765, maxLon: 77.815 }, center: [12.528, 77.789] },
+    { id: "pochampalli", name: "Pochampalli Village", taluk: "Pochampalli", district: "Krishnagiri", state: "Tamil Nadu", bounds: { minLat: 12.315, maxLat: 12.365, minLon: 78.335, maxLon: 78.385 }, center: [12.338, 78.358] },
+    { id: "uthangarai", name: "Uthangarai Panchayat", taluk: "Uthangarai", district: "Krishnagiri", state: "Tamil Nadu", bounds: { minLat: 12.240, maxLat: 12.290, minLon: 78.510, maxLon: 78.560 }, center: [12.264, 78.536] },
+    { id: "shoolagiri", name: "Shoolagiri Rural", taluk: "Shoolagiri", district: "Krishnagiri", state: "Tamil Nadu", bounds: { minLat: 12.645, maxLat: 12.695, minLon: 77.990, maxLon: 78.040 }, center: [12.671, 78.012] },
+    { id: "harur", name: "Harur Watershed", taluk: "Harur", district: "Dharmapuri", state: "Tamil Nadu", bounds: { minLat: 12.040, maxLat: 12.090, minLon: 78.475, maxLon: 78.525 }, center: [12.062, 78.498] },
+    { id: "palacode", name: "Palacode Village", taluk: "Palacode", district: "Dharmapuri", state: "Tamil Nadu", bounds: { minLat: 12.280, maxLat: 12.330, minLon: 78.055, maxLon: 78.105 }, center: [12.302, 78.079] },
+    { id: "pennagaram", name: "Pennagaram Rural", taluk: "Pennagaram", district: "Dharmapuri", state: "Tamil Nadu", bounds: { minLat: 12.110, maxLat: 12.160, minLon: 77.875, maxLon: 77.925 }, center: [12.134, 77.898] },
+    { id: "pappireddipatti", name: "Pappireddipatti Panchayat", taluk: "Pappireddipatti", district: "Dharmapuri", state: "Tamil Nadu", bounds: { minLat: 11.890, maxLat: 11.940, minLon: 78.345, maxLon: 78.395 }, center: [11.916, 78.368] },
+
+    // TAMIL NADU - Salem & Tiruppur
+    { id: "omalur", name: "Omalur Rural", taluk: "Omalur", district: "Salem", state: "Tamil Nadu", bounds: { minLat: 11.720, maxLat: 11.770, minLon: 78.015, maxLon: 78.065 }, center: [11.745, 78.041] },
+    { id: "attur", name: "Attur Watershed", taluk: "Attur", district: "Salem", state: "Tamil Nadu", bounds: { minLat: 11.575, maxLat: 11.625, minLon: 78.575, maxLon: 78.625 }, center: [11.598, 78.598] },
+    { id: "mettur", name: "Mettur Rural", taluk: "Mettur", district: "Salem", state: "Tamil Nadu", bounds: { minLat: 11.770, maxLat: 11.820, minLon: 77.775, maxLon: 77.825 }, center: [11.796, 77.801] },
+    { id: "sankagiri", name: "Sankagiri Panchayat", taluk: "Sankagiri", district: "Salem", state: "Tamil Nadu", bounds: { minLat: 11.460, maxLat: 11.510, minLon: 77.845, maxLon: 77.895 }, center: [11.482, 77.871] },
+    { id: "dharapuram", name: "Dharapuram Watershed", taluk: "Dharapuram", district: "Tiruppur", state: "Tamil Nadu", bounds: { minLat: 10.710, maxLat: 10.760, minLon: 77.505, maxLon: 77.555 }, center: [10.732, 77.528] },
+    { id: "kangeyam", name: "Kangeyam Village", taluk: "Kangeyam", district: "Tiruppur", state: "Tamil Nadu", bounds: { minLat: 10.985, maxLat: 11.035, minLon: 77.535, maxLon: 77.585 }, center: [11.008, 77.561] },
+    { id: "palladam", name: "Palladam Rural", taluk: "Palladam", district: "Tiruppur", state: "Tamil Nadu", bounds: { minLat: 10.975, maxLat: 11.025, minLon: 77.265, maxLon: 77.315 }, center: [10.998, 77.288] },
+    { id: "udumalaipettai", name: "Udumalaipettai", taluk: "Udumalaipettai", district: "Tiruppur", state: "Tamil Nadu", bounds: { minLat: 10.560, maxLat: 10.610, minLon: 77.225, maxLon: 77.275 }, center: [10.582, 77.248] },
+
+    // 4. TELANGANA - Mahabubnagar & Nalgonda
+    { id: "jadcherla", name: "Jadcherla Village", taluk: "Jadcherla", district: "Mahabubnagar", state: "Telangana", bounds: { minLat: 16.740, maxLat: 16.790, minLon: 78.115, maxLon: 78.165 }, center: [16.764, 78.140] },
+    { id: "kalwakurthy", name: "Kalwakurthy Watershed", taluk: "Kalwakurthy", district: "Nagarkurnool", state: "Telangana", bounds: { minLat: 16.645, maxLat: 16.695, minLon: 78.465, maxLon: 78.515 }, center: [16.671, 78.491] },
+    { id: "achampet", name: "Achampet Rural", taluk: "Achampet", district: "Nagarkurnool", state: "Telangana", bounds: { minLat: 16.375, maxLat: 16.425, minLon: 78.790, maxLon: 78.840 }, center: [16.398, 78.814] },
+    { id: "devarakadra", name: "Devarakadra Panchayat", taluk: "Devarakadra", district: "Mahabubnagar", state: "Telangana", bounds: { minLat: 16.595, maxLat: 16.645, minLon: 77.830, maxLon: 77.880 }, center: [16.618, 77.854] },
+    { id: "miryalaguda", name: "Miryalaguda Watershed", taluk: "Miryalaguda", district: "Nalgonda", state: "Telangana", bounds: { minLat: 16.845, maxLat: 16.895, minLon: 79.535, maxLon: 79.585 }, center: [16.871, 79.562] },
+    { id: "devarakonda", name: "Devarakonda Village", taluk: "Devarakonda", district: "Nalgonda", state: "Telangana", bounds: { minLat: 16.675, maxLat: 16.725, minLon: 78.900, maxLon: 78.950 }, center: [16.698, 78.925] },
+    { id: "munugode", name: "Munugode Rural", taluk: "Munugode", district: "Nalgonda", state: "Telangana", bounds: { minLat: 17.050, maxLat: 17.100, minLon: 79.010, maxLon: 79.060 }, center: [17.072, 79.034] },
+    { id: "nakrekal", name: "Nakrekal Panchayat", taluk: "Nakrekal", district: "Nalgonda", state: "Telangana", bounds: { minLat: 17.140, maxLat: 17.190, minLon: 79.405, maxLon: 79.455 }, center: [17.164, 79.428] },
+    { id: "ibrahimpatnam", name: "Ibrahimpatnam Watershed", taluk: "Ibrahimpatnam", district: "Rangareddy", state: "Telangana", bounds: { minLat: 17.135, maxLat: 17.185, minLon: 78.625, maxLon: 78.675 }, center: [17.161, 78.648] },
+    { id: "shadnagar", name: "Shadnagar Village", taluk: "Shadnagar", district: "Rangareddy", state: "Telangana", bounds: { minLat: 17.045, maxLat: 17.095, minLon: 78.185, maxLon: 78.235 }, center: [17.071, 78.209] },
+    { id: "chevella", name: "Chevella Rural", taluk: "Chevella", district: "Rangareddy", state: "Telangana", bounds: { minLat: 17.290, maxLat: 17.340, minLon: 78.115, maxLon: 78.165 }, center: [17.312, 78.138] },
+    { id: "maheshwaram", name: "Maheshwaram Panchayat", taluk: "Maheshwaram", district: "Rangareddy", state: "Telangana", bounds: { minLat: 17.110, maxLat: 17.160, minLon: 78.405, maxLon: 78.455 }, center: [17.135, 78.431] },
+
+    // 5. MAHARASHTRA - Ahmednagar, Solapur & Marathwada
+    { id: "sangamner", name: "Sangamner Watershed", taluk: "Sangamner", district: "Ahmednagar", state: "Maharashtra", bounds: { minLat: 19.545, maxLat: 19.595, minLon: 74.185, maxLon: 74.235 }, center: [19.571, 74.209] },
+    { id: "parner", name: "Parner Rural", taluk: "Parner", district: "Ahmednagar", state: "Maharashtra", bounds: { minLat: 18.975, maxLat: 19.025, minLon: 74.415, maxLon: 74.465 }, center: [19.002, 74.438] },
+    { id: "shrigonda", name: "Shrigonda Village", taluk: "Shrigonda", district: "Ahmednagar", state: "Maharashtra", bounds: { minLat: 18.595, maxLat: 18.645, minLon: 74.675, maxLon: 74.725 }, center: [18.618, 74.698] },
+    { id: "karjat", name: "Karjat Rural", taluk: "Karjat", district: "Ahmednagar", state: "Maharashtra", bounds: { minLat: 18.890, maxLat: 18.940, minLon: 74.990, maxLon: 75.040 }, center: [18.912, 75.012] },
+    { id: "sangola", name: "Sangola Watershed", taluk: "Sangola", district: "Solapur", state: "Maharashtra", bounds: { minLat: 17.415, maxLat: 17.465, minLon: 75.175, maxLon: 75.225 }, center: [17.438, 75.198] },
+    { id: "mangalwedha", name: "Mangalwedha Village", taluk: "Mangalwedha", district: "Solapur", state: "Maharashtra", bounds: { minLat: 17.490, maxLat: 17.540, minLon: 75.415, maxLon: 75.465 }, center: [17.512, 75.441] },
+    { id: "karmala", name: "Karmala Rural", taluk: "Karmala", district: "Solapur", state: "Maharashtra", bounds: { minLat: 18.390, maxLat: 18.440, minLon: 75.175, maxLon: 75.225 }, center: [18.412, 75.198] },
+    { id: "pandharpur", name: "Pandharpur Rural", taluk: "Pandharpur", district: "Solapur", state: "Maharashtra", bounds: { minLat: 17.655, maxLat: 17.705, minLon: 75.305, maxLon: 75.355 }, center: [17.678, 75.328] },
+    { id: "ashti", name: "Ashti Watershed", taluk: "Ashti", district: "Beed", state: "Maharashtra", bounds: { minLat: 18.780, maxLat: 18.830, minLon: 75.155, maxLon: 75.205 }, center: [18.802, 75.178] },
+    { id: "patoda", name: "Patoda Village", taluk: "Patoda", district: "Beed", state: "Maharashtra", bounds: { minLat: 18.865, maxLat: 18.915, minLon: 75.430, maxLon: 75.480 }, center: [18.889, 75.452] },
+    { id: "tuljapur", name: "Tuljapur Rural", taluk: "Tuljapur", district: "Dharashiv", state: "Maharashtra", bounds: { minLat: 17.990, maxLat: 18.040, minLon: 76.045, maxLon: 76.095 }, center: [18.012, 76.071] },
+    { id: "bhoom", name: "Bhoom Panchayat", taluk: "Bhoom", district: "Dharashiv", state: "Maharashtra", bounds: { minLat: 18.445, maxLat: 18.495, minLon: 75.645, maxLon: 75.695 }, center: [18.471, 75.668] },
+
+    // 6. RAJASTHAN & GUJARAT - Arid & Rainshadow Belts
+    { id: "bilara", name: "Bilara Watershed", taluk: "Bilara", district: "Jodhpur", state: "Rajasthan", bounds: { minLat: 26.155, maxLat: 26.205, minLon: 73.685, maxLon: 73.735 }, center: [26.182, 73.712] },
+    { id: "osian", name: "Osian Village", taluk: "Osian", district: "Jodhpur", state: "Rajasthan", bounds: { minLat: 26.700, maxLat: 26.750, minLon: 72.880, maxLon: 72.930 }, center: [26.725, 72.908] },
+    { id: "balotra", name: "Balotra Rural", taluk: "Balotra", district: "Barmer", state: "Rajasthan", bounds: { minLat: 25.810, maxLat: 25.860, minLon: 72.215, maxLon: 72.265 }, center: [25.834, 72.241] },
+    { id: "siwana", name: "Siwana Panchayat", taluk: "Siwana", district: "Barmer", state: "Rajasthan", bounds: { minLat: 25.625, maxLat: 25.675, minLon: 72.390, maxLon: 72.440 }, center: [25.651, 72.418] },
+    { id: "tharad", name: "Tharad Watershed", taluk: "Tharad", district: "Banaskantha", state: "Gujarat", bounds: { minLat: 24.370, maxLat: 24.420, minLon: 71.600, maxLon: 71.650 }, center: [24.394, 71.628] },
+    { id: "vav", name: "Vav Village", taluk: "Vav", district: "Banaskantha", state: "Gujarat", bounds: { minLat: 24.340, maxLat: 24.390, minLon: 71.485, maxLon: 71.535 }, center: [24.364, 71.512] },
+    { id: "radhanpur", name: "Radhanpur Rural", taluk: "Radhanpur", district: "Patan", state: "Gujarat", bounds: { minLat: 23.810, maxLat: 23.860, minLon: 71.580, maxLon: 71.630 }, center: [23.834, 71.608] },
+    { id: "rapar", name: "Rapar Panchayat", taluk: "Rapar", district: "Kutch", state: "Gujarat", bounds: { minLat: 23.545, maxLat: 23.595, minLon: 70.610, maxLon: 70.660 }, center: [23.571, 70.638] }
   ];
 
+  function applyVillageSelection(v) {
+    if (!v) return;
+    clearPreviousResults();
+
+    selectedBounds.minLat = v.bounds.minLat;
+    selectedBounds.maxLat = v.bounds.maxLat;
+    selectedBounds.minLon = v.bounds.minLon;
+    selectedBounds.maxLon = v.bounds.maxLon;
+    selectedBounds.presetKey = v.id;
+    selectedBounds.villageName = `${v.name} (${v.district}, ${v.state})`;
+
+    if (badgeVillageTag) {
+      badgeVillageTag.textContent = v.name;
+    }
+    if (statusLocationName) {
+      statusLocationName.textContent = `Village: ${v.name} (${v.district}, ${v.state})`;
+    }
+    if (selectVillage) {
+      selectVillage.value = v.id;
+    }
+
+    // Highlight active quick-chip if it matches
+    document.querySelectorAll(".quick-village-chip").forEach(chip => {
+      chip.classList.toggle("active", chip.getAttribute("data-id") === v.id);
+    });
+
+    updateSelectorRectangle();
+    updateHandlePositions();
+
+    map.flyToBounds([
+      [v.bounds.minLat, v.bounds.minLon],
+      [v.bounds.maxLat, v.bounds.maxLon]
+    ], { padding: [50, 50], duration: 1.2 });
+  }
+
+  // Dropdown Change Handler
   if (selectVillage) {
     selectVillage.addEventListener("change", (e) => {
       const vId = e.target.value;
       const v = VILLAGES_LIST.find(item => item.id === vId);
-      if (!v) return;
-
-      clearPreviousResults();
-
-      selectedBounds.minLat = v.bounds.minLat;
-      selectedBounds.maxLat = v.bounds.maxLat;
-      selectedBounds.minLon = v.bounds.minLon;
-      selectedBounds.maxLon = v.bounds.maxLon;
-      selectedBounds.presetKey = v.id;
-      selectedBounds.villageName = `${v.name} (${v.district})`;
-
-      if (badgeVillageTag) {
-        badgeVillageTag.textContent = v.name;
-      }
-      if (statusLocationName) {
-        statusLocationName.textContent = `Village: ${v.name} (${v.district}, ${v.state})`;
-      }
-
-      updateSelectorRectangle();
-      updateHandlePositions();
-
-      map.flyToBounds([
-        [v.bounds.minLat, v.bounds.minLon],
-        [v.bounds.maxLat, v.bounds.maxLon]
-      ], { padding: [50, 50], duration: 1.2 });
+      if (v) applyVillageSelection(v);
     });
   }
+
+  // Quick Pick Village Chip Handlers
+  document.querySelectorAll(".quick-village-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const vId = chip.getAttribute("data-id");
+      const v = VILLAGES_LIST.find(item => item.id === vId);
+      if (v) applyVillageSelection(v);
+    });
+  });
+
+  // State Filter Pills for 132+ Village Directory
+  const statePills = document.querySelectorAll(".state-pill-btn");
+  const vscOptionCount = document.getElementById("vsc-option-count");
+  statePills.forEach(pill => {
+    pill.addEventListener("click", () => {
+      statePills.forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      const chosenState = pill.getAttribute("data-state");
+
+      if (selectVillage) {
+        let visibleCount = 0;
+        selectVillage.querySelectorAll("optgroup").forEach(og => {
+          const ogState = og.getAttribute("data-state") || "";
+          const match = (chosenState === "all") || (ogState.toLowerCase() === chosenState.toLowerCase());
+          og.style.display = match ? "" : "none";
+          if (match) {
+            visibleCount += og.querySelectorAll("option").length;
+          }
+        });
+        if (vscOptionCount) {
+          vscOptionCount.textContent = `${visibleCount} Villages`;
+        }
+      }
+    });
+  });
 
   // ================= LIVE OMNI-VILLAGE SEARCH & NOMINATIM AUTOCOMPLETE ================= //
   const villageSearchResults = document.getElementById("village-search-results");
@@ -741,18 +923,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const q = e.target.value.trim();
       clearTimeout(villageSearchTimer);
 
-      // Filter local curated dropdown
+      // Instant local search in our 132-village database
+      const qLower = q.toLowerCase();
       if (selectVillage) {
-        const qLower = q.toLowerCase();
-        const options = selectVillage.querySelectorAll("option:not([disabled])");
-        options.forEach(opt => {
+        let matchCount = 0;
+        selectVillage.querySelectorAll("option:not([disabled])").forEach(opt => {
           const match = !qLower || opt.textContent.toLowerCase().includes(qLower);
           opt.style.display = match ? "" : "none";
+          if (match) matchCount++;
         });
         selectVillage.querySelectorAll("optgroup").forEach(og => {
           const visible = og.querySelectorAll("option:not([style*='display: none'])");
           og.style.display = visible.length > 0 ? "" : "none";
         });
+        if (vscOptionCount && qLower) {
+          vscOptionCount.textContent = `${matchCount} Matches`;
+        }
       }
 
       if (q.length < 2) {
@@ -760,6 +946,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
         return;
       }
+
+      // Check instant curated matches first
+      const localMatches = VILLAGES_LIST.filter(v => 
+        v.name.toLowerCase().includes(qLower) || 
+        v.taluk.toLowerCase().includes(qLower) || 
+        v.district.toLowerCase().includes(qLower)
+      ).slice(0, 4);
 
       if (villageSearchSpinner) villageSearchSpinner.style.display = "block";
 
@@ -771,74 +964,93 @@ document.addEventListener("DOMContentLoaded", () => {
           });
 
           if (!resp.ok) throw new Error("Search failed");
-          const results = await resp.json();
+          const apiResults = await resp.json();
 
           if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
           if (!villageSearchResults) return;
 
-          if (!results || results.length === 0) {
+          villageSearchResults.innerHTML = "";
+
+          // 1. Add instant local matches if any
+          localMatches.forEach(v => {
+            const el = document.createElement("div");
+            el.className = "vsr-item";
+            el.innerHTML = `
+              <div class="vsr-title"><i class="fa-solid fa-star text-yellow"></i> ${v.name} <span style="font-size: 9px; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 1px 5px; border-radius: 4px; margin-left: 4px;">Curated GP</span></div>
+              <div class="vsr-subtitle">${v.taluk} Taluk, ${v.district} District, ${v.state}</div>
+            `;
+            el.addEventListener("click", () => {
+              applyVillageSelection(v);
+              villageSearchResults.style.display = "none";
+              inputVillageSearch.value = `${v.name} (${v.district})`;
+            });
+            villageSearchResults.appendChild(el);
+          });
+
+          // 2. Add OpenStreetMap results for any village in India
+          if (apiResults && apiResults.length > 0) {
+            apiResults.forEach(item => {
+              const el = document.createElement("div");
+              el.className = "vsr-item";
+              const addr = item.address || {};
+              const villageName = addr.village || addr.suburb || addr.town || addr.hamlet || item.name || q;
+              const district = addr.state_district || addr.county || addr.district || "";
+              const state = addr.state || "";
+
+              el.innerHTML = `
+                <div class="vsr-title"><i class="fa-solid fa-location-dot text-cyan"></i> ${villageName}</div>
+                <div class="vsr-subtitle">${district ? district + ", " : ""}${state} (${parseFloat(item.lat).toFixed(3)}°, ${parseFloat(item.lon).toFixed(3)}°)</div>
+              `;
+
+              el.addEventListener("click", () => {
+                const lat = parseFloat(item.lat);
+                const lon = parseFloat(item.lon);
+                const dLat = 0.0225; // ~2.5 km radius
+                const dLon = 0.0300;
+
+                clearPreviousResults();
+
+                selectedBounds.minLat = lat - dLat;
+                selectedBounds.maxLat = lat + dLat;
+                selectedBounds.minLon = lon - dLon;
+                selectedBounds.maxLon = lon + dLon;
+                selectedBounds.presetKey = null;
+                selectedBounds.villageName = `${villageName} (${district || state})`;
+
+                if (badgeVillageTag) {
+                  badgeVillageTag.textContent = villageName;
+                }
+                if (statusLocationName) {
+                  statusLocationName.textContent = `Village: ${villageName} (${district || state})`;
+                }
+                if (selectVillage) {
+                  selectVillage.value = "";
+                }
+                document.querySelectorAll(".quick-village-chip").forEach(c => c.classList.remove("active"));
+
+                updateSelectorRectangle();
+                updateHandlePositions();
+
+                map.flyToBounds([
+                  [selectedBounds.minLat, selectedBounds.minLon],
+                  [selectedBounds.maxLat, selectedBounds.maxLon]
+                ], { padding: [50, 50], duration: 1.2 });
+
+                villageSearchResults.style.display = "none";
+                inputVillageSearch.value = `${villageName} (${district || state})`;
+              });
+
+              villageSearchResults.appendChild(el);
+            });
+          }
+
+          if (localMatches.length === 0 && (!apiResults || apiResults.length === 0)) {
             villageSearchResults.innerHTML = `
               <div class="vsr-item" style="cursor: default; opacity: 0.7;">
                 <div class="vsr-title">No matching villages found</div>
                 <div class="vsr-subtitle">Try another village, taluk, or district name</div>
               </div>`;
-            villageSearchResults.style.display = "flex";
-            return;
           }
-
-          villageSearchResults.innerHTML = "";
-          results.forEach(item => {
-            const el = document.createElement("div");
-            el.className = "vsr-item";
-            const addr = item.address || {};
-            const villageName = addr.village || addr.suburb || addr.town || addr.hamlet || item.name || q;
-            const district = addr.state_district || addr.county || addr.district || "";
-            const state = addr.state || "";
-
-            el.innerHTML = `
-              <div class="vsr-title"><i class="fa-solid fa-location-dot text-cyan"></i> ${villageName}</div>
-              <div class="vsr-subtitle">${district ? district + ", " : ""}${state} (${parseFloat(item.lat).toFixed(3)}°, ${parseFloat(item.lon).toFixed(3)}°)</div>
-            `;
-
-            el.addEventListener("click", () => {
-              const lat = parseFloat(item.lat);
-              const lon = parseFloat(item.lon);
-              const dLat = 0.0225; // ~2.5 km radius
-              const dLon = 0.0300;
-
-              clearPreviousResults();
-
-              selectedBounds.minLat = lat - dLat;
-              selectedBounds.maxLat = lat + dLat;
-              selectedBounds.minLon = lon - dLon;
-              selectedBounds.maxLon = lon + dLon;
-              selectedBounds.presetKey = null;
-              selectedBounds.villageName = `${villageName} (${district || state})`;
-
-              if (badgeVillageTag) {
-                badgeVillageTag.textContent = villageName;
-              }
-              if (statusLocationName) {
-                statusLocationName.textContent = `Village: ${villageName} (${district || state})`;
-              }
-              if (selectVillage) {
-                selectVillage.value = "";
-              }
-
-              updateSelectorRectangle();
-              updateHandlePositions();
-
-              map.flyToBounds([
-                [selectedBounds.minLat, selectedBounds.minLon],
-                [selectedBounds.maxLat, selectedBounds.maxLon]
-              ], { padding: [50, 50], duration: 1.2 });
-
-              villageSearchResults.style.display = "none";
-              inputVillageSearch.value = `${villageName} (${district || state})`;
-            });
-
-            villageSearchResults.appendChild(el);
-          });
 
           villageSearchResults.style.display = "flex";
 
