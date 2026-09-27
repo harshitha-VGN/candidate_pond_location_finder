@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HydroPond AI | Enterprise Watershed Web-GIS & Pond Planner</title>
+  <meta name="description" content="AI-assisted GIS decision platform for rural village pond planning, DEM construction, D8 flow routing, reverse-BFS catchment delineation, and expected rainwater runoff estimation." />
+
+  <!-- Google Fonts: Plus Jakarta Sans, Outfit, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+  <!-- Premium UI Enhancements: Gradients, Animations, Hover FX, Responsive -->
+  <link rel="stylesheet" href="enhancements.css" />
+</head>
+<body>
+  <!-- Ambient background glow layers -->
+  <div class="ambient-glow top-left"></div>
+  <div class="ambient-glow bottom-right"></div>
+  <div class="bg-grid-pattern"></div>
+
+  <div id="app">
+    <!-- ================= TOP GLOBAL HEADER ================= -->
+    <header class="global-header">
+      <div class="header-brand" id="brand-home-link" title="HydroPond AI Web-GIS Platform">
+        <div class="brand-logo">
+          <i class="fa-solid fa-water-ladder"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <span class="brand-name">HydroPond<span class="brand-highlight">.ai</span></span>
+          </div>
+          <span class="brand-tagline">Candidate Pond Location Finder & Catchment Analysis</span>
+        </div>
+      </div>
+
+      <!-- Header Center: Drawer Mode Navigation Tabs -->
+      <div class="header-nav">
+        <button class="nav-tab-btn active" id="nav-btn-input" title="Configure Land Area Selection & Ingestion">
+          <i class="fa-solid fa-vector-square"></i>
+          <span>1. Select Land Area</span>
+        </button>
+        <button class="nav-tab-btn" id="nav-btn-results" title="Inspect Optimal Pond & Catchment Analytics">
+          <i class="fa-solid fa-trophy"></i>
+          <span>2. Pond Results & Catchment</span>
+        </button>
+      </div>
+
+      <!-- Top Right Actions -->
+      <div class="header-right">
+        <button class="icon-control-btn" id="btn-toggle-fullscreen" title="Toggle Fullscreen Viewport">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- ================= FULL-VIEWPORT GIS WORKSPACE ================= -->
+    <main class="gis-workspace">
+      <!-- FULL-SCREEN LEAFLET MAP CANVAS -->
+      <div id="map"></div>
+
+      <!-- FLOATING GLASS CONTROL & RESULTS DRAWER -->
+      <aside class="floating-drawer" id="control-drawer">
+        <!-- Drawer Header with Mini-Tabs -->
+        <div class="drawer-header">
+          <div class="drawer-tabs-row">
+            <button class="drawer-tab-btn active" id="dtab-btn-input" data-tab="tab-content-input">
+              <i class="fa-solid fa-map-location-dot"></i> Select Area
+            </button>
+            <button class="drawer-tab-btn" id="dtab-btn-optimal" data-tab="tab-content-optimal">
+              <i class="fa-solid fa-award"></i> Optimal Pond
+            </button>
+            <button class="drawer-tab-btn" id="dtab-btn-leaderboard" data-tab="tab-content-leaderboard">
+              <i class="fa-solid fa-list-ol"></i> Candidates
+            </button>
+            <button class="drawer-tab-btn" id="dtab-btn-charts" data-tab="tab-content-charts">
+              <i class="fa-solid fa-chart-column"></i> Charts
+            </button>
+            <button class="drawer-tab-btn" id="dtab-btn-systems" data-tab="tab-content-systems">
+              <i class="fa-solid fa-server"></i> 4-Systems
+            </button>
+            <button class="drawer-tab-btn" id="dtab-btn-layers" data-tab="tab-content-layers">
+              <i class="fa-solid fa-layer-group"></i> Layers
+            </button>
+          </div>
+
+          <button class="drawer-collapse-btn" id="btn-toggle-drawer" title="Collapse / Expand Panel">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+        </div>
+
+        <!-- Scrollable Drawer Body -->
+        <div class="drawer-scroll-body">
+          <!-- ================= TAB 1: LAND AREA SELECTION & PARAMETERS ================= -->
+          <div class="drawer-panel active" id="tab-content-input">
+            <!-- Mode Switcher Tabs -->
+            <div class="ingest-tabs-header">
+              <button class="ingest-mode-tab active" id="tab-mode-map">
+                <i class="fa-solid fa-map-location-dot"></i>
+                <span>Select on Map</span>
+              </button>
+              <button class="ingest-mode-tab" id="tab-mode-upload">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Upload KML/KMZ</span>
+              </button>
+            </div>
+
+            <!-- MODE 1: INTERACTIVE MAP LAND AREA SELECTION -->
+            <div class="ingest-mode-content active" id="panel-mode-map">
+              <div class="selection-clean-card">
+                <div class="scc-header">
+                  <span><i class="fa-solid fa-draw-polygon text-cyan"></i> Selected Land Area</span>
+                  <span class="sm-badge" id="badge-area-size">24.15 km²</span>
+                </div>
+
+                <!-- Real-time Selected Coordinates Readout -->
+                <div class="selection-coords-strip">
+                  <div class="coord-pill"><span class="cp-lbl">N:</span> <strong id="lbl-coord-n">13.165°</strong></div>
+                  <div class="coord-pill"><span class="cp-lbl">S:</span> <strong id="lbl-coord-s">13.120°</strong></div>
+                  <div class="coord-pill"><span class="cp-lbl">W:</span> <strong id="lbl-coord-w">78.115°</strong></div>
+                  <div class="coord-pill"><span class="cp-lbl">E:</span> <strong id="lbl-coord-e">78.175°</strong></div>
+                  <div class="coord-pill highlight"><span class="cp-lbl">Area:</span> <strong id="lbl-coord-area">2,415 ha</strong></div>
+                </div>
+
+                <div class="box-action-helpers">
+                  <button type="button" class="btn-map-helper" id="btn-tool-draw-box" title="Draw completely new box from scratch">
+                    <i class="fa-solid fa-vector-square"></i> Drag New Area
+                  </button>
+                  <button type="button" class="btn-map-helper" id="btn-tool-reset-box" title="Reset box to default area">
+                    <i class="fa-solid fa-arrows-rotate"></i> Reset Bounds
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- MODE 2: KML/KMZ FILE UPLOAD -->
+            <div class="ingest-mode-content" id="panel-mode-upload" style="display: none;">
+              <!-- Upload Dropzone -->
+              <div class="premium-dropzone" id="kml-dropzone">
+                <div class="drop-icon-animated">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <div class="drop-primary-txt">Drag & Drop your Contour file here</div>
+                <div class="drop-secondary-txt">or click the button below to browse</div>
+                <button type="button" class="btn-browse-file" id="btn-browse-file">
+                  <i class="fa-solid fa-folder-open"></i> Browse KML / KMZ File
+                </button>
+                <div class="drop-supported-tags">
+                  <span><i class="fa-solid fa-check text-emerald"></i> LineStrings</span>
+                  <span><i class="fa-solid fa-check text-emerald"></i> LinearRings</span>
+                  <span><i class="fa-solid fa-check text-emerald"></i> 3D Elevations</span>
+                </div>
+                <input type="file" id="file-input" accept=".kml,.kmz,.xml,*/*" style="display: none;" />
+              </div>
+
+              <!-- File Selected Banner -->
+              <div id="file-ready-banner" class="file-selected-banner" style="display: none;">
+                <div class="selected-file-info">
+                  <div class="file-icon-wrap">
+                    <i class="fa-solid fa-file-code"></i>
+                  </div>
+                  <div>
+                    <div class="file-name" id="file-name-display">contours.kml</div>
+                    <div class="file-meta" id="file-size-display">Ready for Hydrological Engine</div>
+                  </div>
+                </div>
+                <button class="btn-remove-file" id="btn-clear-file" title="Change file">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Analysis Parameters -->
+            <div class="params-container">
+              <div class="param-field">
+                <label for="input-top-n">
+                  <span>Top Candidates (N)</span>
+                  <i class="fa-solid fa-circle-info tooltip" title="Number of top optimal pond locations to score"></i>
+                </label>
+                <div class="input-with-icon">
+                  <i class="fa-solid fa-list-ol"></i>
+                  <input type="number" id="input-top-n" class="styled-param-input" value="5" min="1" max="10" />
+                </div>
+              </div>
+
+              <div class="param-field">
+                <label for="input-grid-res">
+                  <span>DEM Grid Resolution</span>
+                  <i class="fa-solid fa-circle-info tooltip" title="Grid resolution for 3D bicubic interpolation"></i>
+                </label>
+                <div class="input-with-icon">
+                  <i class="fa-solid fa-border-all"></i>
+                  <input type="number" id="input-grid-res" class="styled-param-input" value="120" min="50" max="300" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Primary Execute CTA -->
+            <button class="glow-submit-btn" id="btn-run-analysis">
+              <span class="btn-shimmer"></span>
+              <span class="btn-label-row">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span id="btn-run-label">Find Optimal Ponds & Catchments</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </span>
+            </button>
+
+            <!-- Dynamic Verification Banner -->
+            <div class="dynamic-verified-strip">
+              <i class="fa-solid fa-circle-check text-emerald"></i>
+              <span>100% Dynamic Pipeline: Bicubic DEM &rarr; D8 Flow &rarr; Reverse-BFS &rarr; Open-Meteo Runoff</span>
+            </div>
+          </div>
+
+          <!-- ================= TAB 2: OPTIMAL POND & RESULTS ================= -->
+          <div class="drawer-panel" id="tab-content-optimal">
+            <!-- Empty State Before Analysis -->
+            <div class="empty-state-card" id="empty-state-optimal">
+              <div class="esc-icon"><i class="fa-solid fa-water-ladder"></i></div>
+              <div class="esc-title">No Analysis Computed Yet</div>
+              <p class="esc-desc">
+                Select your study area on the map or upload a contour file, then click <strong>"Find Optimal Ponds & Catchments"</strong> to generate live results.
+              </p>
+            </div>
+
+            <!-- Dynamic Results Content (Hidden until analysis runs) -->
+            <div id="optimal-results-content" style="display: none; flex-direction: column; gap: 14px;">
+              <!-- Dynamic Execution Proof Card -->
+              <div class="dynamic-proof-card">
+                <div class="dpc-header">
+                  <div class="dpc-status">
+                    <span class="status-indicator-dot online"></span>
+                    <strong id="proof-engine-source">Live Engine: http://localhost:5000</strong>
+                  </div>
+                  <span class="dpc-time" id="proof-processing-time">⚡ -</span>
+                </div>
+                <div class="dpc-stats-row">
+                  <div class="dpc-stat"><span>DEM Grid:</span> <strong id="proof-grid-res">-</strong></div>
+                  <div class="dpc-stat"><span>Elevation:</span> <strong id="proof-elev-range">-</strong></div>
+                  <div class="dpc-stat"><span>Rainfall:</span> <strong id="proof-rainfall">-</strong></div>
+                </div>
+              </div>
+
+              <!-- Optimal Pond Location #1 Hero Card -->
+              <div class="optimal-hero-card">
+                <div class="optimal-card-top">
+                  <div class="optimal-badge">
+                    <i class="fa-solid fa-star"></i> Suggested Pond Location #1
+                  </div>
+                  <div class="optimal-score-pill" id="kpi-hero-score">Score: -</div>
+                </div>
+
+                <div class="kpi-quad-grid">
+                  <div class="kpi-quad-cell">
+                    <span class="kq-label">Catchment Area</span>
+                    <span class="kq-val cyan" id="kpi-catchment">- <span class="unit">ha</span></span>
+                    <span class="kq-sub" id="kpi-catchment-m2">- m²</span>
+                  </div>
+
+                  <div class="kpi-quad-cell">
+                    <span class="kq-label">Expected Water Volume</span>
+                    <span class="kq-val emerald" id="kpi-runoff">- <span class="unit">k m³</span></span>
+                    <span class="kq-sub" id="kpi-runoff-ml">Annual Runoff Yield</span>
+                  </div>
+
+                  <div class="kpi-quad-cell">
+                    <span class="kq-label">Recommended Storage</span>
+                    <span class="kq-val purple" id="kpi-storage">- <span class="unit">k m³</span></span>
+                    <span class="kq-sub">50% Runoff Capacity</span>
+                  </div>
+
+                  <div class="kpi-quad-cell">
+                    <span class="kq-label">Recommended Depth</span>
+                    <span class="kq-val amber" id="kpi-depth">- <span class="unit">m</span></span>
+                    <span class="kq-sub">incl. 0.5m freeboard</span>
+                  </div>
+                </div>
+
+                <div class="kpi-detail-list">
+                  <div class="kpi-detail-row">
+                    <span><i class="fa-solid fa-location-crosshairs text-cyan"></i> Location Coordinates:</span>
+                    <strong id="kpi-coords">-</strong>
+                  </div>
+                  <div class="kpi-detail-row">
+                    <span><i class="fa-solid fa-cloud-rain text-cyan"></i> Mean Annual Rainfall:</span>
+                    <strong id="kpi-rainfall">- mm/yr</strong>
+                  </div>
+                  <div class="kpi-detail-row">
+                    <span><i class="fa-solid fa-maximize text-emerald"></i> Pond Surface Area:</span>
+                    <strong id="kpi-surface">- m²</strong>
+                  </div>
+                  <div class="kpi-detail-row">
+                    <span><i class="fa-solid fa-arrow-down-short-wide text-purple"></i> Max Depression Depth:</span>
+                    <strong id="kpi-depression">- m</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Export Buttons -->
+              <div class="export-actions-row">
+                <button class="btn-export secondary" id="btn-export-geojson">
+                  <i class="fa-solid fa-file-code"></i> Export GeoJSON
+                </button>
+                <button class="btn-export secondary" id="btn-export-csv">
+                  <i class="fa-solid fa-file-csv"></i> Export CSV Table
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 3: ALL CANDIDATES LEADERBOARD ================= -->
+          <div class="drawer-panel" id="tab-content-leaderboard">
+            <!-- Empty State Before Analysis -->
+            <div class="empty-state-card" id="empty-state-leaderboard">
+              <div class="esc-icon"><i class="fa-solid fa-list-ol"></i></div>
+              <div class="esc-title">No Candidates Yet</div>
+              <p class="esc-desc">
+                Run the analysis to identify and rank candidate pond sites across the study area.
+              </p>
+            </div>
+            <div id="leaderboard-results-content" style="display: none; flex-direction: column; gap: 10px;">
+              <div class="section-label-row">
+                <span class="section-label">Identified Candidate Pond Sites</span>
+                <span class="sm-badge" id="lbl-candidates-count">0 Sites</span>
+              </div>
+              <div class="leaderboard-container" id="candidates-list-container">
+                <!-- Dynamically Populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 4: VOLUME CHARTS & FORMULA ================= -->
+          <div class="drawer-panel" id="tab-content-charts">
+            <!-- Empty State Before Analysis -->
+            <div class="empty-state-card" id="empty-state-charts">
+              <div class="esc-icon"><i class="fa-solid fa-chart-column"></i></div>
+              <div class="esc-title">No Chart Data Yet</div>
+              <p class="esc-desc">
+                Run the analysis to compare Expected Runoff Volume vs Target Storage Capacity across candidate pond sites.
+              </p>
+            </div>
+            <div id="charts-results-content" style="display: none; flex-direction: column; gap: 14px;">
+              <div class="chart-box">
+                <div class="chart-header">
+                  <i class="fa-solid fa-chart-column text-cyan"></i>
+                  <span>Expected Runoff Volume (Q) vs Storage (V)</span>
+                </div>
+                <div class="chart-canvas-wrap">
+                  <canvas id="runoffComparisonChart" height="200"></canvas>
+                </div>
+              </div>
+
+              <div class="formula-box-card">
+                <div class="fb-title">Hydrological Volume Formulation</div>
+                <div class="fb-equation">Q = C &times; P &times; A</div>
+                <div class="fb-params">
+                  <div><strong>Q:</strong> Expected Annual Water Volume (m³)</div>
+                  <div><strong>C = 0.30:</strong> Empirical Runoff Coefficient (rural soil)</div>
+                  <div><strong>P:</strong> Annual Rainfall from Open-Meteo (m)</div>
+                  <div><strong>A:</strong> Upstream Catchment Drainage Area (m²)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 5: 4-SYSTEM SPECS & STRESS SCALING ================= -->
+          <div class="drawer-panel" id="tab-content-systems">
+            <div class="system-specs-card">
+              <div class="sys-spec-header">
+                <i class="fa-solid fa-microchip text-cyan"></i>
+                <span>4-System Architecture & Computational Stress Scaling</span>
+              </div>
+              <p class="sys-spec-intro">
+                High-performance geospatial architecture distributed across the four provided systems. <strong>The exact same full-featured backend engine runs on Sys 2, Sys 3, and Sys 4 as identical worker replicas</strong>, orchestrated by the Sys 1 client interface for load balancing, stress mitigation, and fault-tolerant failover:
+              </p>
+
+              <div class="sys-module-card">
+                <div class="sm-title-row">
+                  <span class="sm-badge blue">Sys 1</span>
+                  <strong>Client Web-GIS & Cluster Orchestrator (Client Browser)</strong>
+                </div>
+                <p class="sm-desc">
+                  Interactive Web-GIS frontend interface. Manages satellite map land area selection, coordinate parsing, dynamic KML contour generation, client-side round-robin load distribution across worker replicas, and multi-layer GeoJSON visualization.
+                </p>
+              </div>
+
+              <div class="sys-module-card">
+                <div class="sm-title-row">
+                  <span class="sm-badge green">Sys 2 (Port 5246)</span>
+                  <strong>Backend Compute Worker Replica 1 (Full Hydrological Engine)</strong>
+                </div>
+                <p class="sm-desc">
+                  Runs the full Python Flask REST backend pipeline: KML contour parsing, Bicubic DEM rasterization, D8 flow routing, river floodway exclusion, reverse-BFS catchment delineation, and Open-Meteo rainfall runoff sizing.
+                </p>
+                <ul class="sm-bullets">
+                  <li><strong>Endpoint:</strong> <code>http://10.1.75.79:5246/analyzeContour</code></li>
+                  <li><strong>Capacity:</strong> Handles concurrent raster grid interpolations ($50\times50$ to $300\times300$).</li>
+                </ul>
+              </div>
+
+              <div class="sys-module-card">
+                <div class="sm-title-row">
+                  <span class="sm-badge purple">Sys 3 (Port 5247)</span>
+                  <strong>Backend Compute Worker Replica 2 (Full Hydrological Engine)</strong>
+                </div>
+                <p class="sm-desc">
+                  Identical backend worker instance providing parallel computational capacity. Relieves memory and CPU stress when processing large watersheds or high contour density datasets.
+                </p>
+                <ul class="sm-bullets">
+                  <li><strong>Endpoint:</strong> <code>http://10.1.75.79:5247/analyzeContour</code></li>
+                  <li><strong>Failover Role:</strong> Automatically receives queued queries if Sys 2 is under peak load or offline.</li>
+                </ul>
+              </div>
+
+              <div class="sys-module-card">
+                <div class="sm-title-row">
+                  <span class="sm-badge amber">Sys 4 (Port 5248)</span>
+                  <strong>Backend Compute Worker Replica 3 (Full Hydrological Engine)</strong>
+                </div>
+                <p class="sm-desc">
+                  Identical backend worker instance completing the 3-node compute cluster. Ensures high system availability, sub-1.5s interactive response times, and resilience against single-point-of-failure bottlenecks.
+                </p>
+                <ul class="sm-bullets">
+                  <li><strong>Endpoint:</strong> <code>http://10.1.75.79:5248/analyzeContour</code></li>
+                  <li><strong>Horizontal Scaling:</strong> Triples system throughput across independent worker processes.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= TAB 6: LAYER VISIBILITY OVERLAYS ================= -->
+          <div class="drawer-panel" id="tab-content-layers">
+            <div class="layer-switches-box">
+              <div class="layer-switch-row">
+                <div class="ls-info">
+                  <div class="dot-ind satellite"></div>
+                  <div>
+                    <div class="ls-name">Satellite Basemap</div>
+                    <div class="ls-sub">High-Resolution Satellite Imagery</div>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-satellite" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="layer-switch-row">
+                <div class="ls-info">
+                  <div class="dot-ind catchment"></div>
+                  <div>
+                    <div class="ls-name">Catchment Area Boundaries</div>
+                    <div class="ls-sub">Delineated Upstream Drainage Basin</div>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-catchment" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="layer-switch-row">
+                <div class="ls-info">
+                  <div class="dot-ind volume"></div>
+                  <div>
+                    <div class="ls-name">Expected Water Volume Badges</div>
+                    <div class="ls-sub">On-map volume metrics for each catchment</div>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-vol-labels" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="layer-switch-row">
+                <div class="ls-info">
+                  <div class="dot-ind pondsite"></div>
+                  <div>
+                    <div class="ls-name">Pond Site Depression Polygons</div>
+                    <div class="ls-sub">Natural depression collection basins</div>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-pondsite" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="layer-switch-row">
+                <div class="ls-info">
+                  <div class="dot-ind marker"></div>
+                  <div>
+                    <div class="ls-name">Suggested Pond Locations</div>
+                    <div class="ls-sub">Ranked candidate marker pins with popups</div>
+                  </div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="toggle-markers" checked />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- FLOATING TOP BASEMAP CONTROL BAR -->
+      <div class="map-floating-bar">
+        <div class="map-pills-group">
+          <button class="map-pill active" id="pill-basemap-satellite">
+            <i class="fa-solid fa-satellite"></i> Satellite
+          </button>
+          <button class="map-pill" id="pill-basemap-topo">
+            <i class="fa-solid fa-mountain"></i> Topo Map
+          </button>
+        </div>
+        <button class="map-pill" id="pill-zoom-fit" title="Zoom to fit watershed extent">
+          <i class="fa-solid fa-expand"></i> Zoom Extent
+        </button>
+      </div>
+
+      <!-- FLOATING ON-MAP WATER VOLUME & OPTIMAL SITE HUD (Hidden until analysis runs) -->
+      <div class="floating-kpi-hud" id="floating-kpi-hud" style="display: none;">
+        <div class="hud-header">
+          <div class="hud-badge"><i class="fa-solid fa-trophy"></i> Optimal Pond Site #1</div>
+          <span class="hud-score" id="hud-score">Score: -</span>
+        </div>
+        <div class="hud-body">
+          <div class="hud-metric">
+            <span class="hm-lbl">Catchment Area</span>
+            <strong class="hm-val cyan" id="hud-catchment">- ha</strong>
+          </div>
+          <div class="hud-divider"></div>
+          <div class="hud-metric">
+            <span class="hm-lbl">Expected Water Volume (Q)</span>
+            <strong class="hm-val emerald" id="hud-volume">- k m³</strong>
+          </div>
+          <div class="hud-divider"></div>
+          <div class="hud-metric">
+            <span class="hm-lbl">Target Storage (V)</span>
+            <strong class="hm-val purple" id="hud-storage">- k m³</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- FLOATING BOTTOM STATUS BAR -->
+      <div class="map-bottom-bar">
+        <div class="status-item">
+          <i class="fa-solid fa-location-crosshairs text-cyan"></i>
+          <span>Land Area:</span>
+          <strong id="status-location-name">Selected Study Area</strong>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-item">
+          <i class="fa-solid fa-water text-emerald"></i>
+          <span>Total Expected Yield:</span>
+          <strong id="status-total-yield">-</strong>
+        </div>
+        <div class="status-divider"></div>
+        <div class="status-item">
+          <i class="fa-solid fa-bolt text-amber"></i>
+          <span>Status:</span>
+          <strong id="status-latency">Ready for Analysis</strong>
+        </div>
+      </div>
+    </main>
+
+    <!-- ================= FULLSCREEN LOADING MODAL ================= -->
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="loader-card">
+        <div class="spinner-ring">
+          <div></div><div></div><div></div><div></div>
+        </div>
+        <div class="loader-title">Executing Hydrological Analysis...</div>
+        <div class="loader-desc" id="loader-desc">
+          Interpolating 3D Bicubic DEM &rarr; D8 Steepest Flow &rarr; Reverse-BFS Catchment &rarr; Open-Meteo Runoff
+        </div>
+        <div class="loader-progress-bar"><div class="progress-fill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaflet Script -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Pre-calibrated Benchmark Data & Hydrological Simulation -->
+  <script src="sample_data.js"></script>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -17,3 +17,13 @@ venv/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Reports & Scripts
+report.tex
+DEMO_VIDEO_SCRIPT.md
+*.aux
+*.log
+*.out
+*.synctex*
+*.toc
+*.pdf
