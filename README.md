@@ -12,8 +12,9 @@ An end-to-end AI-assisted geospatial decision-support platform for village pond 
 ## 📌 Project Information
 
 - **GitHub Repository:** [https://github.com/harshitha-VGN/candidate_pond_location_finder.git](https://github.com/harshitha-VGN/candidate_pond_location_finder.git)
-- **Backend API Route:** `http://localhost:5000/analyzeContour`
-- **Frontend Path:** `frontend/index.html` (Open directly in any modern web browser or serve via static host)
+- **Live Web Application URL:** `http://10.1.75.79:5245/` (or `http://localhost:5000/` locally)
+- **Backend API Endpoint:** `http://10.1.75.79:5245/analyzeContour` (or `http://localhost:5000/analyzeContour`)
+- **API Health Check:** `http://10.1.75.79:5245/health` (or `http://localhost:5000/health`)
 
 ---
 
@@ -38,28 +39,26 @@ candidate_pond_location_finder/
 ├── frontend/                       # Interactive Web-GIS User Interface
 │   ├── index.html                  # Main Web-GIS application shell & sidebar
 │   ├── style.css                   # Modern aesthetic stylesheet with glassmorphism
+│   ├── enhancements.css            # Gradients, hover animations, & responsive layout
 │   ├── app.js                      # Map controller, Leaflet drawing, & API integration
 │   └── sample_data.js              # Benchmark watershed datasets & KML generator
 │
-├── app.py                          # Flask REST API server and pipeline controller
+├── app.py                          # Flask REST API server & Web-GIS static host
 ├── kml_parser.py                   # KML / KMZ parser extracting 3D contour vertices
 ├── dem_builder.py                  # Bicubic DEM raster builder and grid metadata
 ├── terrain_analysis.py             # D8 flow routing, flow accumulation, river detection
 ├── catchment.py                    # Local minima filtering and reverse-BFS catchment delineation
 ├── pond_selector.py                # Multi-criteria scoring, Open-Meteo rainfall, runoff sizing
 ├── geojson_builder.py              # Standard GeoJSON FeatureCollection builder
-│
-├── report.tex                      # Complete 10-page ACM manuscript technical report
-├── DEMO_VIDEO_SCRIPT.md            # 5-minute video walkthrough script and demo guide
 ├── requirements.txt                # Python backend dependencies
 └── README.md                       # Comprehensive documentation
 ```
 
 ---
 
-## 💻 Quick Start & Running Locally
+## 💻 Quick Start & Running
 
-### 1. Backend Service
+### 1. Start the Backend & Web Service
 
 ```bash
 # Clone repository
@@ -69,30 +68,16 @@ cd candidate_pond_location_finder
 # Install dependencies
 pip install -r requirements.txt
 
-# Run Flask server (Default port: 5000)
+# Run Flask server (Default port: 5000, mapped externally to 5245)
 python app.py
 ```
 
-The API will be available at `http://localhost:5000`.
+### 2. Access the Web Application
 
-### 2. Frontend Web Interface
-
-The frontend is a standalone, zero-build Web-GIS application. You can launch it using any of the following methods:
-
-**Method A: Python Simple HTTP Server**
-```bash
-python3 -m http.server 8080 --directory frontend
-```
-Then open `http://localhost:8080` in your web browser.
-
-**Method B: Node.js Serve / NPX**
-```bash
-npx -y serve frontend -p 3000
-```
-Then open `http://localhost:3000`.
-
-**Method C: Direct Browser Launch**
-Simply double-click `frontend/index.html` in your file explorer to open it in Chrome, Edge, Safari, or Firefox.
+Once the server is running, open any modern web browser:
+- **Network / Deployed URL:** [`http://10.1.75.79:5245/`](http://10.1.75.79:5245/)
+- **Localhost URL:** [`http://localhost:5000/`](http://localhost:5000/)
+*(You can also open `frontend/index.html` directly in your browser).*
 
 ---
 
@@ -111,11 +96,12 @@ Submits contour data for full hydrological analysis and pond candidate selection
 #### Example cURL Request
 
 ```bash
-curl -X POST http://localhost:5000/analyzeContour \
+curl -X POST http://10.1.75.79:5245/analyzeContour \
   -F "file=@sample_contours.kml" \
   -F "top_n=5" \
   -F "grid_res=120"
 ```
+*(or `http://localhost:5000/analyzeContour` if testing locally)*
 
 #### Response Format (GeoJSON FeatureCollection)
 
