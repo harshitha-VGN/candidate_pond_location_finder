@@ -805,8 +805,21 @@ function simulateHydrologicalAnalysis(minLon, minLat, maxLon, maxLat, topN = 3, 
   const cLon = (minLon + maxLon) / 2;
   const cLat = (minLat + maxLat) / 2;
   
-  const studyAreaKm2 = Math.round(dLon * dLat * 111.32 * 110.57 * 100) / 100;
-  const rainfallMm = 720.0;
+  // Dynamically estimate natural rainfall from geographic coordinates:
+  let rainfallMm = 745.0;
+  if (cLon < 75.5) {
+    rainfallMm = Math.round(2800 + (cLat - 12) * 50); // Western Ghats / Coastal
+  } else if (cLat >= 14.0 && cLat <= 15.5 && cLon >= 76.8 && cLon <= 78.0) {
+    rainfallMm = Math.round(560 + (cLat - 14.0) * 80 + (cLon - 77.0) * 60); // Anantapur/Rayalaseema drought belt
+  } else if (cLat >= 12.8 && cLat <= 13.8 && cLon >= 77.5 && cLon <= 78.8) {
+    rainfallMm = Math.round(745 + (cLat - 13.0) * 90 + (cLon - 78.0) * 80); // Kolar/Chittoor plateau
+  } else if (cLat >= 13.5 && cLat <= 14.3 && cLon >= 76.8 && cLon <= 77.5) {
+    rainfallMm = Math.round(590 + (cLat - 13.5) * 70); // Pavagada/Tumakuru drought zone
+  } else if (cLat > 24) {
+    rainfallMm = Math.round(280 + (cLat - 24) * 30); // Arid zone
+  } else {
+    rainfallMm = Math.round(720 + Math.sin(cLat * 0.2) * 110 + Math.cos(cLon * 0.2) * 70);
+  }
   const runoffCoeff = 0.30;
   
   const candidatesData = [];

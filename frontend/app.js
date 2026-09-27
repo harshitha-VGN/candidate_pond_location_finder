@@ -92,6 +92,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const panelModeUpload = document.getElementById("panel-mode-upload");
   const presetChips = document.querySelectorAll(".preset-chip");
   const badgeAreaSize = document.getElementById("badge-area-size");
+  const selectVillage = document.getElementById("select-village");
+  const inputVillageSearch = document.getElementById("input-village-search");
+  const badgeVillageTag = document.getElementById("badge-village-tag");
   const lblCoordN = document.getElementById("lbl-coord-n");
   const lblCoordS = document.getElementById("lbl-coord-s");
   const lblCoordW = document.getElementById("lbl-coord-w");
@@ -653,6 +656,9 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedBounds.minLon = 78.115;
       selectedBounds.maxLon = 78.175;
       selectedBounds.presetKey = null;
+      selectedBounds.villageName = null;
+      if (badgeVillageTag) badgeVillageTag.textContent = "Custom Area";
+      if (selectVillage) selectVillage.value = "";
       toggleDrawingBox(false);
       updateSelectorRectangle();
       updateHandlePositions();
@@ -660,6 +666,99 @@ document.addEventListener("DOMContentLoaded", () => {
         [selectedBounds.minLat, selectedBounds.minLon],
         [selectedBounds.maxLat, selectedBounds.maxLon]
       ], { padding: [50, 50], animate: true });
+    });
+  }
+
+  // ================= VILLAGE BASED SELECTION DATABASE & HANDLERS ================= //
+  const VILLAGES_LIST = [
+    // Kolar District
+    { id: "vokkaleri", name: "Vokkaleri Village", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.100, maxLat: 13.150, minLon: 78.160, maxLon: 78.210 }, center: [13.125, 78.185] },
+    { id: "vemagal", name: "Vemagal Watershed", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.165, maxLat: 13.215, minLon: 77.995, maxLon: 78.045 }, center: [13.190, 78.020] },
+    { id: "kyalanur", name: "Kyalanur Village", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.210, maxLat: 13.260, minLon: 78.190, maxLon: 78.240 }, center: [13.235, 78.215] },
+    { id: "holur", name: "Holur Gram Panchayat", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.185, maxLat: 13.235, minLon: 78.135, maxLon: 78.185 }, center: [13.210, 78.160] },
+    { id: "sugatur", name: "Sugatur Village", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.150, maxLat: 13.200, minLon: 78.115, maxLon: 78.165 }, center: [13.175, 78.140] },
+    { id: "narasapura", name: "Narasapura Rural", taluk: "Kolar", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.130, maxLat: 13.180, minLon: 77.960, maxLon: 78.010 }, center: [13.155, 77.985] },
+    { id: "bangarapet", name: "Bangarapet Rural", taluk: "Bangarapet", district: "Kolar", state: "Karnataka", bounds: { minLat: 12.960, maxLat: 13.010, minLon: 78.175, maxLon: 78.225 }, center: [12.985, 78.200] },
+    { id: "mulbagal", name: "Mulbagal Watershed", taluk: "Mulbagal", district: "Kolar", state: "Karnataka", bounds: { minLat: 13.140, maxLat: 13.190, minLon: 78.370, maxLon: 78.420 }, center: [13.165, 78.395] },
+
+    // Anantapur District
+    { id: "rapthadu", name: "Rapthadu Village", taluk: "Anantapur", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.590, maxLat: 14.640, minLon: 77.560, maxLon: 77.610 }, center: [14.615, 77.585] },
+    { id: "bukkaraya", name: "Bukkarayasamudram", taluk: "Anantapur", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.680, maxLat: 14.730, minLon: 77.640, maxLon: 77.690 }, center: [14.705, 77.665] },
+    { id: "kudair", name: "Kudair Village", taluk: "Kudair", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.710, maxLat: 14.760, minLon: 77.400, maxLon: 77.450 }, center: [14.735, 77.425] },
+    { id: "kalyandurg", name: "Kalyandurg Watershed", taluk: "Kalyandurg", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.525, maxLat: 14.575, minLon: 77.085, maxLon: 77.135 }, center: [14.550, 77.110] },
+    { id: "dharmavaram", name: "Dharmavaram Rural", taluk: "Dharmavaram", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.390, maxLat: 14.440, minLon: 77.695, maxLon: 77.745 }, center: [14.415, 77.720] },
+    { id: "penukonda", name: "Penukonda Watershed", taluk: "Penukonda", district: "Anantapur", state: "Andhra Pradesh", bounds: { minLat: 14.060, maxLat: 14.110, minLon: 77.565, maxLon: 77.615 }, center: [14.085, 77.590] },
+
+    // Tumakuru District
+    { id: "pavagada", name: "Pavagada Village", taluk: "Pavagada", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 14.075, maxLat: 14.125, minLon: 77.250, maxLon: 77.300 }, center: [14.100, 77.275] },
+    { id: "madhugiri", name: "Madhugiri Watershed", taluk: "Madhugiri", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.635, maxLat: 13.685, minLon: 77.185, maxLon: 77.235 }, center: [13.660, 77.210] },
+    { id: "sira", name: "Sira Taluk Rural", taluk: "Sira", district: "Tumakuru", state: "Karnataka", bounds: { minLat: 13.720, maxLat: 13.770, minLon: 76.880, maxLon: 76.930 }, center: [13.745, 76.905] },
+
+    // Chittoor District
+    { id: "punganur", name: "Punganur Watershed", taluk: "Punganur", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.340, maxLat: 13.390, minLon: 78.555, maxLon: 78.605 }, center: [13.365, 78.580] },
+    { id: "madanapalle", name: "Madanapalle Rural", taluk: "Madanapalle", district: "Chittoor", state: "Andhra Pradesh", bounds: { minLat: 13.525, maxLat: 13.575, minLon: 78.475, maxLon: 78.525 }, center: [13.550, 78.500] }
+  ];
+
+  if (selectVillage) {
+    selectVillage.addEventListener("change", (e) => {
+      const vId = e.target.value;
+      const v = VILLAGES_LIST.find(item => item.id === vId);
+      if (!v) return;
+
+      clearPreviousResults();
+
+      selectedBounds.minLat = v.bounds.minLat;
+      selectedBounds.maxLat = v.bounds.maxLat;
+      selectedBounds.minLon = v.bounds.minLon;
+      selectedBounds.maxLon = v.bounds.maxLon;
+      selectedBounds.presetKey = v.id;
+      selectedBounds.villageName = `${v.name} (${v.district})`;
+
+      if (badgeVillageTag) {
+        badgeVillageTag.textContent = v.name;
+      }
+      if (statusLocationName) {
+        statusLocationName.textContent = `Village: ${v.name} (${v.district}, ${v.state})`;
+      }
+
+      updateSelectorRectangle();
+      updateHandlePositions();
+
+      map.flyToBounds([
+        [v.bounds.minLat, v.bounds.minLon],
+        [v.bounds.maxLat, v.bounds.maxLon]
+      ], { padding: [50, 50], duration: 1.2 });
+    });
+  }
+
+  // Quick live filter for village dropdown
+  if (inputVillageSearch && selectVillage) {
+    inputVillageSearch.addEventListener("input", (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const options = selectVillage.querySelectorAll("option:not([disabled])");
+      let firstMatch = null;
+
+      options.forEach(opt => {
+        const text = opt.textContent.toLowerCase();
+        const match = !q || text.includes(q);
+        opt.style.display = match ? "" : "none";
+        if (match && !firstMatch && q) firstMatch = opt;
+      });
+
+      selectVillage.querySelectorAll("optgroup").forEach(og => {
+        const visibleOpts = og.querySelectorAll("option:not([style*='display: none'])");
+        og.style.display = visibleOpts.length > 0 ? "" : "none";
+      });
+    });
+
+    inputVillageSearch.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        const firstVisible = selectVillage.querySelector("option:not([disabled]):not([style*='display: none'])");
+        if (firstVisible) {
+          selectVillage.value = firstVisible.value;
+          selectVillage.dispatchEvent(new Event("change"));
+        }
+      }
     });
   }
 
