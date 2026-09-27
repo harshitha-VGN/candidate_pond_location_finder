@@ -92,7 +92,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const panelModeUpload = document.getElementById("panel-mode-upload");
   const presetChips = document.querySelectorAll(".preset-chip");
   const badgeAreaSize = document.getElementById("badge-area-size");
-  const selectVillage = document.getElementById("select-village");
   const inputVillageSearch = document.getElementById("input-village-search");
   const badgeVillageTag = document.getElementById("badge-village-tag");
   const lblCoordN = document.getElementById("lbl-coord-n");
@@ -658,7 +657,7 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedBounds.presetKey = null;
       selectedBounds.villageName = null;
       if (badgeVillageTag) badgeVillageTag.textContent = "Custom Area";
-      if (selectVillage) selectVillage.value = "";
+      if (inputVillageSearch) inputVillageSearch.value = "";
       toggleDrawingBox(false);
       updateSelectorRectangle();
       updateHandlePositions();
@@ -851,15 +850,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (statusLocationName) {
       statusLocationName.textContent = `Village: ${v.name} (${v.district}, ${v.state})`;
     }
-    if (selectVillage) {
-      selectVillage.value = v.id;
-    }
-
-    // Highlight active quick-chip if it matches
-    document.querySelectorAll(".quick-village-chip").forEach(chip => {
-      chip.classList.toggle("active", chip.getAttribute("data-id") === v.id);
-    });
-
     updateSelectorRectangle();
     updateHandlePositions();
 
@@ -869,51 +859,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ], { padding: [50, 50], duration: 1.2 });
   }
 
-  // Dropdown Change Handler
-  if (selectVillage) {
-    selectVillage.addEventListener("change", (e) => {
-      const vId = e.target.value;
-      const v = VILLAGES_LIST.find(item => item.id === vId);
-      if (v) applyVillageSelection(v);
-    });
-  }
-
-  // Quick Pick Village Chip Handlers
-  document.querySelectorAll(".quick-village-chip").forEach(chip => {
-    chip.addEventListener("click", () => {
-      const vId = chip.getAttribute("data-id");
-      const v = VILLAGES_LIST.find(item => item.id === vId);
-      if (v) applyVillageSelection(v);
-    });
-  });
-
-  // State Filter Pills for 132+ Village Directory
-  const statePills = document.querySelectorAll(".state-pill-btn");
-  const vscOptionCount = document.getElementById("vsc-option-count");
-  statePills.forEach(pill => {
-    pill.addEventListener("click", () => {
-      statePills.forEach(p => p.classList.remove("active"));
-      pill.classList.add("active");
-      const chosenState = pill.getAttribute("data-state");
-
-      if (selectVillage) {
-        let visibleCount = 0;
-        selectVillage.querySelectorAll("optgroup").forEach(og => {
-          const ogState = og.getAttribute("data-state") || "";
-          const match = (chosenState === "all") || (ogState.toLowerCase() === chosenState.toLowerCase());
-          og.style.display = match ? "" : "none";
-          if (match) {
-            visibleCount += og.querySelectorAll("option").length;
-          }
-        });
-        if (vscOptionCount) {
-          vscOptionCount.textContent = `${visibleCount} Villages`;
-        }
-      }
-    });
-  });
-
-  // ================= LIVE OMNI-VILLAGE SEARCH & NOMINATIM AUTOCOMPLETE ================= //
+  // ================= VILLAGE SEARCH & LIVE AUTOCOMPLETE ================= //
   const villageSearchResults = document.getElementById("village-search-results");
   const villageSearchSpinner = document.getElementById("village-search-spinner");
   let villageSearchTimer = null;
@@ -923,44 +869,37 @@ document.addEventListener("DOMContentLoaded", () => {
       const q = e.target.value.trim();
       clearTimeout(villageSearchTimer);
 
-      // Instant local search in our 132-village database
-      const qLower = q.toLowerCase();
-      if (selectVillage) {
-        let matchCount = 0;
-        selectVillage.querySelectorAll("option:not([disabled])").forEach(opt => {
-          const match = !qLower || opt.textContent.toLowerCase().includes(qLower);
-          opt.style.display = match ? "" : "none";
-          if (match) matchCount++;
-        });
-        selectVillage.querySelectorAll("optgroup").forEach(og => {
-          const visible = og.querySelectorAll("option:not([style*='display: none'])");
-          og.style.display = visible.length > 0 ? "" : "none";
-        });
-        if (vscOptionCount && qLower) {
-          vscOptionCount.textContent = `${matchCount} Matches`;
-        }
-      }
-
       if (q.length < 2) {
         if (villageSearchResults) villageSearchResults.style.display = "none";
         if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
         return;
       }
 
-      // Check instant curated matches first
-      const localMatches = VILLAGES_LIST.filter(v => 
-        v.name.toLowerCase().includes(qLower) || 
-        v.taluk.toLowerCase().includes(qLower) || 
-        v.district.toLowerCase().includes(qLower)
-      ).slice(0, 4);
-
       if (villageSearchSpinner) villageSearchSpinner.style.display = "block";
 
       villageSearchTimer = setTimeout(async () => {
         try {
+          const qLower = q.toLowerCase();
+
+          // Curated local instant matches
+          const localMatches = VILLAGES_LIST.filter(v => 
+            v.name.toLowerCase().includes(qLower) || 
+            (v.taluk && v.taluk.toLowerCase().includes(qLower)) || 
+            (v.district && v.district.toLowerCase().includes(qLower))
+          ).slice(0, 4).map(v => ({
+            name: v.name,
+            type: "village",
+            taluk: v.taluk,
+            district: v.district,
+            state: v.state,
+            lat: (v.bounds.minLat + v.bounds.maxLat) / 2,
+            lon: (v.bounds.minLon + v.bounds.maxLon) / 2,
+            bounds: v.bounds
+          }));
+
           let apiResults = [];
 
-          // 1. Try our backend proxy /api/searchVillage (uses official compliant headers)
+          // 1. Backend proxy /api/searchVillage
           try {
             const resp = await fetch(`/api/searchVillage?q=${encodeURIComponent(q)}`);
             if (resp.ok) {
@@ -970,10 +909,10 @@ document.addEventListener("DOMContentLoaded", () => {
               }
             }
           } catch (backendErr) {
-            console.warn("Backend village search proxy unreachable, switching to direct Photon API:", backendErr);
+            console.warn("Backend village search proxy unreachable:", backendErr);
           }
 
-          // 2. Direct Photon OpenStreetMap GeoEngine API fallback if backend proxy returned empty
+          // 2. Direct Photon fallback if needed
           if (!apiResults || apiResults.length === 0) {
             try {
               const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=en`;
@@ -1003,24 +942,33 @@ document.addEventListener("DOMContentLoaded", () => {
                       maxLat: lat + 0.0225,
                       minLon: lon - 0.0300,
                       maxLon: lon + 0.0300
-                    },
-                    source: "Photon OpenStreetMap Live API"
+                    }
                   };
                 });
               }
             } catch (pErr) {
-              console.warn("Direct Photon API query error:", pErr);
+              console.warn("Direct Photon API fallback error:", pErr);
             }
           }
+
+          // Merge local and API results, eliminating duplicates
+          const seen = new Set();
+          const combined = [];
+          [...localMatches, ...apiResults].forEach(item => {
+            const key = (item.name || "").toLowerCase() + "_" + (item.state || "").toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              combined.push(item);
+            }
+          });
 
           if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
           if (!villageSearchResults) return;
 
           villageSearchResults.innerHTML = "";
 
-          // Render live API results
-          if (apiResults && apiResults.length > 0) {
-            apiResults.forEach(item => {
+          if (combined.length > 0) {
+            combined.slice(0, 10).forEach(item => {
               const el = document.createElement("div");
               el.className = "vsr-item";
 
@@ -1030,9 +978,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
               el.innerHTML = `
                 <div class="vsr-title">
-                  <i class="fa-solid fa-location-dot text-emerald"></i> ${item.name}
+                  <i class="fa-solid fa-location-dot text-cyan"></i> ${item.name}
                   ${typeBadge}
-                  <span class="vsr-api-tag"><i class="fa-solid fa-satellite text-cyan"></i> Live API</span>
                 </div>
                 <div class="vsr-subtitle">${stateInfo}${pinInfo} (${item.lat.toFixed(4)}°, ${item.lon.toFixed(4)}°)</div>
               `;
@@ -1048,15 +995,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 selectedBounds.villageName = `${item.name} (${item.district || item.state})`;
 
                 if (badgeVillageTag) {
-                  badgeVillageTag.textContent = `${item.name} (Live API)`;
+                  badgeVillageTag.textContent = item.name;
                 }
                 if (statusLocationName) {
-                  statusLocationName.textContent = `Village: ${item.name} (${stateInfo}) [OpenStreetMap API]`;
+                  statusLocationName.textContent = `Village: ${item.name} (${stateInfo})`;
                 }
-                if (selectVillage) {
-                  selectVillage.value = "";
-                }
-                document.querySelectorAll(".quick-village-chip").forEach(c => c.classList.remove("active"));
 
                 updateSelectorRectangle();
                 updateHandlePositions();
@@ -1075,7 +1018,7 @@ document.addEventListener("DOMContentLoaded", () => {
           } else {
             villageSearchResults.innerHTML = `
               <div class="vsr-item" style="cursor: default; opacity: 0.7;">
-                <div class="vsr-title"><i class="fa-solid fa-triangle-exclamation text-yellow"></i> No matching villages found in API</div>
+                <div class="vsr-title"><i class="fa-solid fa-triangle-exclamation text-yellow"></i> No matching villages found</div>
                 <div class="vsr-subtitle">Check spelling or search by Taluk/District name</div>
               </div>`;
           }
@@ -1086,7 +1029,7 @@ document.addEventListener("DOMContentLoaded", () => {
           console.warn("Village search error:", err);
           if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
         }
-      }, 350);
+      }, 250);
     });
 
     // Close search dropdown on click outside
