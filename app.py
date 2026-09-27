@@ -21,7 +21,7 @@ import tempfile
 import logging
 import time
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 MAX_UPLOAD_MB: int = 50
@@ -54,6 +54,9 @@ CORS(app)
 ALLOWED = {".kml", ".kmz"}
 
 
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "frontend")
+
+
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({
@@ -61,6 +64,20 @@ def health():
         "service": "CSD Pond Planning API",
         "version": "1.0",
     })
+
+
+@app.route("/", methods=["GET"])
+def serve_index():
+    return send_from_directory(FRONTEND_DIR, "index.html")
+
+
+@app.route("/<path:filename>", methods=["GET"])
+def serve_static(filename):
+    file_path = os.path.join(FRONTEND_DIR, filename)
+    if os.path.isfile(file_path):
+        return send_from_directory(FRONTEND_DIR, filename)
+    return jsonify({"error": f"File '{filename}' not found"}), 404
+
 
 
 

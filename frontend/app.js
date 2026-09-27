@@ -6,9 +6,15 @@
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  // 4-System Distributed Cluster Configuration + Local Engine
+  const isWebOrigin = window.location.protocol.startsWith("http");
+  const hostBase = isWebOrigin ? window.location.origin : "http://localhost:5000";
+  const hostPort = isWebOrigin && window.location.port ? window.location.port : (isWebOrigin ? (window.location.protocol === 'https:' ? 443 : 80) : 5000);
+
+  // 4-System Distributed Cluster Configuration + Dynamic Host Engine
   const CLUSTER_NODES = [
-    { id: "local", name: "Local Engine", port: 5000, url: "http://localhost:5000/analyzeContour", healthUrl: "http://localhost:5000/health", isOnline: true },
+    { id: "active_host", name: isWebOrigin ? `Active Host (${hostPort})` : "Sys 1 Primary", port: hostPort, url: `${hostBase}/analyzeContour`, healthUrl: `${hostBase}/health`, isOnline: true },
+    { id: "sys1", name: "Sys 1 (5245)", port: 5245, url: "http://10.1.75.79:5245/analyzeContour", healthUrl: "http://10.1.75.79:5245/health", isOnline: true },
+    { id: "local", name: "Local Engine (5000)", port: 5000, url: "http://localhost:5000/analyzeContour", healthUrl: "http://localhost:5000/health", isOnline: true },
     { id: "sys2", name: "Sys 2", port: 5246, url: "http://10.1.75.79:5246/analyzeContour", healthUrl: "http://10.1.75.79:5246/health", isOnline: false },
     { id: "sys3", name: "Sys 3", port: 5247, url: "http://10.1.75.79:5247/analyzeContour", healthUrl: "http://10.1.75.79:5247/health", isOnline: false },
     { id: "sys4", name: "Sys 4", port: 5248, url: "http://10.1.75.79:5248/analyzeContour", healthUrl: "http://10.1.75.79:5248/health", isOnline: false }
