@@ -958,70 +958,100 @@ document.addEventListener("DOMContentLoaded", () => {
 
       villageSearchTimer = setTimeout(async () => {
         try {
-          const queryUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q + ", India")}&format=json&countrycodes=in&addressdetails=1&limit=6`;
-          const resp = await fetch(queryUrl, {
-            headers: { "Accept": "application/json" }
-          });
+          let apiResults = [];
 
-          if (!resp.ok) throw new Error("Search failed");
-          const apiResults = await resp.json();
+          // 1. Try our backend proxy /api/searchVillage (uses official compliant headers)
+          try {
+            const resp = await fetch(`/api/searchVillage?q=${encodeURIComponent(q)}`);
+            if (resp.ok) {
+              const data = await resp.json();
+              if (data && data.results && data.results.length > 0) {
+                apiResults = data.results;
+              }
+            }
+          } catch (backendErr) {
+            console.warn("Backend village search proxy unreachable, switching to direct Photon API:", backendErr);
+          }
+
+          // 2. Direct Photon OpenStreetMap GeoEngine API fallback if backend proxy returned empty
+          if (!apiResults || apiResults.length === 0) {
+            try {
+              const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&lang=en`;
+              const pResp = await fetch(photonUrl);
+              if (pResp.ok) {
+                const pData = await pResp.json();
+                const features = (pData.features || []).filter(f => {
+                  const p = f.properties || {};
+                  return p.countrycode === "IN" || p.country === "India";
+                });
+                apiResults = features.map(f => {
+                  const p = f.properties || {};
+                  const coords = f.geometry?.coordinates || [0, 0];
+                  const lat = parseFloat(coords[1]);
+                  const lon = parseFloat(coords[0]);
+                  return {
+                    name: p.name || q,
+                    type: p.osm_value || p.type || "village",
+                    taluk: p.county || p.city || "",
+                    district: p.district || p.county || "",
+                    state: p.state || "",
+                    postcode: p.postcode || "",
+                    lat: lat,
+                    lon: lon,
+                    bounds: {
+                      minLat: lat - 0.0225,
+                      maxLat: lat + 0.0225,
+                      minLon: lon - 0.0300,
+                      maxLon: lon + 0.0300
+                    },
+                    source: "Photon OpenStreetMap Live API"
+                  };
+                });
+              }
+            } catch (pErr) {
+              console.warn("Direct Photon API query error:", pErr);
+            }
+          }
 
           if (villageSearchSpinner) villageSearchSpinner.style.display = "none";
           if (!villageSearchResults) return;
 
           villageSearchResults.innerHTML = "";
 
-          // 1. Add instant local matches if any
-          localMatches.forEach(v => {
-            const el = document.createElement("div");
-            el.className = "vsr-item";
-            el.innerHTML = `
-              <div class="vsr-title"><i class="fa-solid fa-star text-yellow"></i> ${v.name} <span style="font-size: 9px; background: rgba(56,189,248,0.2); color: #38bdf8; padding: 1px 5px; border-radius: 4px; margin-left: 4px;">Curated GP</span></div>
-              <div class="vsr-subtitle">${v.taluk} Taluk, ${v.district} District, ${v.state}</div>
-            `;
-            el.addEventListener("click", () => {
-              applyVillageSelection(v);
-              villageSearchResults.style.display = "none";
-              inputVillageSearch.value = `${v.name} (${v.district})`;
-            });
-            villageSearchResults.appendChild(el);
-          });
-
-          // 2. Add OpenStreetMap results for any village in India
+          // Render live API results
           if (apiResults && apiResults.length > 0) {
             apiResults.forEach(item => {
               const el = document.createElement("div");
               el.className = "vsr-item";
-              const addr = item.address || {};
-              const villageName = addr.village || addr.suburb || addr.town || addr.hamlet || item.name || q;
-              const district = addr.state_district || addr.county || addr.district || "";
-              const state = addr.state || "";
+
+              const typeBadge = item.type ? `<span class="vsr-type-badge">${item.type.toUpperCase()}</span>` : "";
+              const stateInfo = [item.taluk, item.district, item.state].filter(Boolean).join(", ");
+              const pinInfo = item.postcode ? ` - PIN: ${item.postcode}` : "";
 
               el.innerHTML = `
-                <div class="vsr-title"><i class="fa-solid fa-location-dot text-cyan"></i> ${villageName}</div>
-                <div class="vsr-subtitle">${district ? district + ", " : ""}${state} (${parseFloat(item.lat).toFixed(3)}°, ${parseFloat(item.lon).toFixed(3)}°)</div>
+                <div class="vsr-title">
+                  <i class="fa-solid fa-location-dot text-emerald"></i> ${item.name}
+                  ${typeBadge}
+                  <span class="vsr-api-tag"><i class="fa-solid fa-satellite text-cyan"></i> Live API</span>
+                </div>
+                <div class="vsr-subtitle">${stateInfo}${pinInfo} (${item.lat.toFixed(4)}°, ${item.lon.toFixed(4)}°)</div>
               `;
 
               el.addEventListener("click", () => {
-                const lat = parseFloat(item.lat);
-                const lon = parseFloat(item.lon);
-                const dLat = 0.0225; // ~2.5 km radius
-                const dLon = 0.0300;
-
                 clearPreviousResults();
 
-                selectedBounds.minLat = lat - dLat;
-                selectedBounds.maxLat = lat + dLat;
-                selectedBounds.minLon = lon - dLon;
-                selectedBounds.maxLon = lon + dLon;
+                selectedBounds.minLat = item.bounds ? item.bounds.minLat : item.lat - 0.0225;
+                selectedBounds.maxLat = item.bounds ? item.bounds.maxLat : item.lat + 0.0225;
+                selectedBounds.minLon = item.bounds ? item.bounds.minLon : item.lon - 0.0300;
+                selectedBounds.maxLon = item.bounds ? item.bounds.maxLon : item.lon + 0.0300;
                 selectedBounds.presetKey = null;
-                selectedBounds.villageName = `${villageName} (${district || state})`;
+                selectedBounds.villageName = `${item.name} (${item.district || item.state})`;
 
                 if (badgeVillageTag) {
-                  badgeVillageTag.textContent = villageName;
+                  badgeVillageTag.textContent = `${item.name} (Live API)`;
                 }
                 if (statusLocationName) {
-                  statusLocationName.textContent = `Village: ${villageName} (${district || state})`;
+                  statusLocationName.textContent = `Village: ${item.name} (${stateInfo}) [OpenStreetMap API]`;
                 }
                 if (selectVillage) {
                   selectVillage.value = "";
@@ -1037,18 +1067,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 ], { padding: [50, 50], duration: 1.2 });
 
                 villageSearchResults.style.display = "none";
-                inputVillageSearch.value = `${villageName} (${district || state})`;
+                inputVillageSearch.value = `${item.name}, ${item.district || item.state}`;
               });
 
               villageSearchResults.appendChild(el);
             });
-          }
-
-          if (localMatches.length === 0 && (!apiResults || apiResults.length === 0)) {
+          } else {
             villageSearchResults.innerHTML = `
               <div class="vsr-item" style="cursor: default; opacity: 0.7;">
-                <div class="vsr-title">No matching villages found</div>
-                <div class="vsr-subtitle">Try another village, taluk, or district name</div>
+                <div class="vsr-title"><i class="fa-solid fa-triangle-exclamation text-yellow"></i> No matching villages found in API</div>
+                <div class="vsr-subtitle">Check spelling or search by Taluk/District name</div>
               </div>`;
           }
 
