@@ -3,914 +3,642 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HydroPond Telemetry Workbench | OpenTelemetry Observability</title>
-  <meta name="description" content="Engineering observability console for AI Village Pond Planning System with OpenTelemetry tracing, Prometheus metrics, and correlated logs." />
+  <title>HydroPond AI | OpenTelemetry Live Observability</title>
+  <meta name="description" content="AI-assisted GIS decision platform for rural village pond planning - OpenTelemetry Distributed Tracing, Prometheus Metrics, and Correlated Logs." />
 
-  <!-- Fonts: Space Grotesk, JetBrains Mono, Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans, Outfit, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Font Awesome Icons -->
+  <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
+  <!-- Shared HydroPond AI Stylesheets -->
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="enhancements.css" />
+
   <style>
-    :root {
-      --bg-base: #07090e;
-      --bg-sidebar: #0d121d;
-      --bg-surface: #111827;
-      --bg-surface-elevated: #1a2234;
-      --border-subtle: rgba(255, 255, 255, 0.07);
-      --border-active: rgba(45, 212, 191, 0.35);
-      
-      --text-high: #f1f5f9;
-      --text-medium: #94a3b8;
-      --text-low: #64748b;
-      
-      --teal-primary: #14b8a6;
-      --teal-glow: rgba(20, 184, 166, 0.18);
-      --emerald-accent: #10b981;
-      --indigo-accent: #6366f1;
-      --amber-accent: #f59e0b;
-      --rose-accent: #f43f5e;
-      --sky-accent: #0ea5e9;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    /* Observability Viewport Integration with HydroPond AI */
     body {
-      background-color: var(--bg-base);
-      color: var(--text-high);
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow-y: auto !important;
+      height: auto !important;
       min-height: 100vh;
-      display: flex;
-      overflow-x: hidden;
+      background-color: var(--bg-dark);
     }
 
-    /* LEFT SIDEBAR WORKBENCH NAVIGATION */
-    aside.workbench-sidebar {
-      width: 270px;
-      background: var(--bg-sidebar);
-      border-right: 1px solid var(--border-subtle);
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      min-height: 100vh;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-
-    .sidebar-brand-box {
-      padding: 1.25rem 1.4rem;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-    }
-    .brand-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #0d9488, #2563eb);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-      font-size: 1.15rem;
-      box-shadow: 0 0 16px var(--teal-glow);
-    }
-    .brand-titles h1 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: #fff;
-    }
-    .brand-titles span {
-      font-size: 0.7rem;
-      color: var(--teal-primary);
-      font-family: 'JetBrains Mono', monospace;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .service-health-badge {
-      margin: 1rem 1.4rem;
-      padding: 0.65rem 0.85rem;
-      background: rgba(20, 184, 166, 0.08);
-      border: 1px solid rgba(20, 184, 166, 0.25);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.75rem;
-    }
-    .status-beacon {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--emerald-accent);
-      box-shadow: 0 0 10px var(--emerald-accent);
-      animation: beaconPulse 2.2s infinite ease-in-out;
-    }
-    @keyframes beaconPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
-
-    .nav-section-title {
-      padding: 0.85rem 1.4rem 0.4rem;
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--text-low);
-      font-weight: 700;
-    }
-
-    .sidebar-menu {
-      list-style: none;
-      padding: 0 0.85rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      flex: 1;
-    }
-    .menu-item button {
-      width: 100%;
-      background: transparent;
-      border: 1px solid transparent;
-      border-radius: 8px;
-      padding: 0.65rem 0.85rem;
-      color: var(--text-medium);
-      font-size: 0.83rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      cursor: pointer;
-      text-align: left;
-      transition: all 0.18s ease;
-    }
-    .menu-item button:hover {
-      color: var(--text-high);
-      background: var(--bg-surface);
-    }
-    .menu-item.active button {
-      background: var(--bg-surface-elevated);
-      color: var(--teal-primary);
-      border-color: var(--border-active);
-    }
-    .menu-item button i {
-      font-size: 0.95rem;
-      width: 18px;
-    }
-
-    .sidebar-bottom-actions {
-      padding: 1.25rem 1.4rem;
-      border-top: 1px solid var(--border-subtle);
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-    .btn-action-side {
-      width: 100%;
-      padding: 0.55rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      text-decoration: none;
-      cursor: pointer;
-      border: 1px solid var(--border-subtle);
-      background: var(--bg-surface);
-      color: var(--text-medium);
-      transition: all 0.2s ease;
-    }
-    .btn-action-side:hover {
-      background: var(--bg-surface-elevated);
-      color: var(--text-high);
-      border-color: var(--border-active);
-    }
-
-    /* MAIN VIEWPORT */
-    main.workbench-content {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* TOP ACTION BAR */
-    header.workbench-topbar {
-      height: 64px;
-      border-bottom: 1px solid var(--border-subtle);
-      background: rgba(13, 18, 29, 0.75);
-      backdrop-filter: blur(14px);
-      padding: 0 1.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 40;
-    }
-    .topbar-meta {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      font-size: 0.8rem;
-    }
-    .env-chip {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      padding: 0.2rem 0.55rem;
-      border-radius: 4px;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.72rem;
-      color: var(--text-medium);
-    }
-    .topbar-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .btn-trigger-exec {
-      background: linear-gradient(135deg, #0d9488, #0284c7);
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 0.5rem 0.95rem;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      box-shadow: 0 0 14px var(--teal-glow);
-      transition: all 0.2s ease;
-    }
-    .btn-trigger-exec:hover {
-      opacity: 0.92;
-      transform: translateY(-1px);
-    }
-    .btn-icon-soft {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-medium);
-      padding: 0.5rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .btn-icon-soft:hover {
-      background: var(--bg-surface-elevated);
-      color: var(--text-high);
-    }
-
-    /* WORKBENCH BODY */
-    .view-scroll-canvas {
-      padding: 1.75rem 2rem 4rem;
-      flex: 1;
-    }
-
-    /* KPI METRICS RIBBON */
-    .stats-ribbon {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.75rem;
-    }
-    .stat-tile {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.15rem;
+    .otel-page-container {
       position: relative;
-      overflow: hidden;
-    }
-    .stat-tile::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 3px;
-      background: var(--teal-primary);
-    }
-    .stat-title {
-      font-size: 0.73rem;
-      color: var(--text-low);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      font-weight: 600;
-      margin-bottom: 0.4rem;
-    }
-    .stat-metric {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.85rem;
-      font-weight: 700;
-      color: #fff;
-    }
-    .stat-sub {
-      font-size: 0.72rem;
-      color: var(--text-medium);
-      margin-top: 0.25rem;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
+      z-index: 10;
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
     }
 
-    /* VIEW PANELS */
-    .view-container {
-      display: none;
-    }
-    .view-container.active {
-      display: block;
-    }
-
-    /* VIEW 1: TRACES & TIMELINE WORKBENCH */
-    .traces-split-workbench {
-      display: grid;
-      grid-template-columns: 370px 1fr;
-      gap: 1.25rem;
-      min-height: 600px;
-    }
-    @media (max-width: 1100px) {
-      .traces-split-workbench {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .trace-master-list {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .trace-list-header {
-      padding: 0.85rem 1.15rem;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid var(--border-subtle);
-      font-size: 0.82rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .trace-scroll-area {
-      overflow-y: auto;
-      max-height: 650px;
-    }
-    .trace-card {
-      padding: 0.9rem 1.15rem;
-      border-bottom: 1px solid var(--border-subtle);
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-    .trace-card:hover {
-      background: rgba(255, 255, 255, 0.02);
-    }
-    .trace-card.active {
-      background: rgba(20, 184, 166, 0.08);
-      border-left: 3px solid var(--teal-primary);
-    }
-    .trace-card-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 0.35rem;
-    }
-    .trace-entry-name {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: #fff;
-    }
-    .status-tag {
-      font-size: 0.68rem;
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .tag-ok {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--emerald-accent);
-    }
-    .tag-err {
-      background: rgba(244, 63, 94, 0.15);
-      color: var(--rose-accent);
-    }
-    .trace-card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.72rem;
-      color: var(--text-low);
-    }
-
-    /* RIGHT: WATERFALL GANTT EXECUTION CANVAS */
-    .trace-gantt-pane {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-    .gantt-header-summary {
-      background: var(--bg-surface-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
+    /* Top Sub-Bar with Sub-Tabs & Live Actions */
+    .otel-subnav-dock {
+      background: var(--bg-glass);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .trace-hash-pill {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8rem;
-      background: rgba(0, 0, 0, 0.3);
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-      border: 1px solid var(--border-subtle);
-      color: var(--teal-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
+      gap: 12px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
     }
 
-    .gantt-timeline-box {
-      background: #090d16;
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 0.85rem;
-      overflow-x: auto;
-    }
-    .gantt-axis-row {
-      display: grid;
-      grid-template-columns: 290px 1fr;
-      padding-bottom: 0.6rem;
-      border-bottom: 1px solid var(--border-subtle);
-      font-size: 0.72rem;
-      color: var(--text-low);
-      font-weight: 700;
-    }
-    .axis-ticks {
+    .otel-status-indicator {
       display: flex;
-      justify-content: space-between;
-      padding: 0 0.5rem;
-    }
-    .gantt-span-row {
-      display: grid;
-      grid-template-columns: 290px 1fr;
       align-items: center;
-      padding: 0.5rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--emerald-light);
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+    }
+    .pulse-bulb {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald-light);
+      box-shadow: 0 0 8px var(--emerald-glow);
+      animation: bulbGlow 2s infinite ease-in-out;
+    }
+    @keyframes bulbGlow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    /* KPI Summary Cards Grid */
+    .otel-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .otel-kpi-card {
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .otel-kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-accent);
+    }
+    .otel-kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan-light), transparent);
+    }
+    .otel-kpi-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .otel-kpi-val {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .otel-kpi-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Traces View Split Layout */
+    .otel-split-view {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+      min-height: 580px;
+    }
+    @media (max-width: 1040px) {
+      .otel-split-view {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .otel-glass-panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-md);
+    }
+
+    .panel-top-bar {
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-main);
+    }
+
+    .trace-item-row {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
       cursor: pointer;
       transition: background 0.15s ease;
-      font-size: 0.78rem;
     }
-    .gantt-span-row:hover {
+    .trace-item-row:hover {
       background: rgba(255, 255, 255, 0.03);
     }
-    .gantt-span-row.selected {
-      background: rgba(20, 184, 166, 0.08);
+    .trace-item-row.active {
+      background: rgba(2, 132, 199, 0.12);
+      border-left: 3px solid var(--cyan-light);
     }
-    .span-title-cell {
+    .trace-item-header {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
-      font-family: 'JetBrains Mono', monospace;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .trace-item-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .badge-pill {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+    .badge-ok {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      color: var(--emerald-light);
+    }
+    .badge-err {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.35);
+      color: var(--rose-light);
+    }
+    .trace-item-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Trace Waterfall Viewer */
+    .trace-detail-box {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .trace-overview-header {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .trace-id-badge {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--cyan-light);
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid var(--border-accent);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .waterfall-canvas {
+      background: rgba(6, 11, 20, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      overflow-x: auto;
+    }
+    .waterfall-header-row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 700;
+    }
+    .waterfall-ticks {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 8px;
+    }
+    .waterfall-span-row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+      cursor: pointer;
+      transition: background 0.15s ease;
+      font-size: 12px;
+    }
+    .waterfall-span-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .waterfall-span-row.selected {
+      background: rgba(56, 189, 248, 0.09);
+    }
+    .span-name-label {
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-right: 0.6rem;
+      padding-right: 8px;
     }
-    .span-bar-lane {
+    .span-bar-wrapper {
       position: relative;
       height: 22px;
       display: flex;
       align-items: center;
     }
-    .gantt-bar {
+    .span-bar-fill {
       position: absolute;
-      height: 16px;
+      height: 15px;
       border-radius: 4px;
-      background: linear-gradient(90deg, #0d9488, #14b8a6);
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
       min-width: 4px;
-      box-shadow: 0 0 10px rgba(20, 184, 166, 0.25);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
       display: flex;
       align-items: center;
-      padding: 0 0.45rem;
+      padding: 0 6px;
       color: #fff;
-      font-size: 0.66rem;
-      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-family: var(--font-mono);
       font-weight: 700;
       white-space: nowrap;
     }
-    .gantt-bar.server {
-      background: linear-gradient(90deg, #1e40af, #3b82f6);
+    .span-bar-fill.server {
+      background: linear-gradient(90deg, #2563eb, #60a5fa);
     }
-    .gantt-bar.gis {
-      background: linear-gradient(90deg, #6d28d9, #8b5cf6);
-      box-shadow: 0 0 10px rgba(139, 92, 246, 0.25);
+    .span-bar-fill.gis {
+      background: linear-gradient(90deg, #7c3aed, #c084fc);
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.35);
     }
-    .gantt-bar.scoring {
-      background: linear-gradient(90deg, #047857, #10b981);
+    .span-bar-fill.scoring {
+      background: linear-gradient(90deg, #059669, #34d399);
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.35);
     }
-    .gantt-bar.client-call {
-      background: linear-gradient(90deg, #b45309, #f59e0b);
+    .span-bar-fill.client {
+      background: linear-gradient(90deg, #d97706, #fbbf24);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
     }
 
-    /* SPAN ATTRIBUTE INSPECTION DRAWER */
-    .span-meta-drawer {
-      background: var(--bg-surface-elevated);
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 1rem 1.25rem;
+    /* Attributes Inspector */
+    .span-attrs-box {
+      background: rgba(16, 24, 40, 0.95);
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      box-shadow: var(--shadow-sm);
     }
-    .drawer-header-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--teal-primary);
-      margin-bottom: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .attributes-grid {
+    .attrs-table-view {
       width: 100%;
       border-collapse: collapse;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.76rem;
+      font-family: var(--font-mono);
+      font-size: 11px;
     }
-    .attributes-grid th, .attributes-grid td {
-      padding: 0.45rem 0.6rem;
+    .attrs-table-view th, .attrs-table-view td {
+      padding: 6px 10px;
       text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--border-subtle);
     }
-    .attributes-grid th {
-      color: var(--text-low);
+    .attrs-table-view th {
+      color: var(--text-dim);
       font-weight: 600;
-      width: 35%;
+      width: 32%;
     }
-    .attributes-grid td {
-      color: var(--text-high);
+    .attrs-table-view td {
+      color: var(--text-main);
       word-break: break-all;
     }
 
-    /* VIEW 2: PROMETHEUS METRICS EXPLORER */
-    .metrics-dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 1.75rem;
+    /* Tab Content Switcher */
+    .tab-content-panel {
+      display: none;
     }
-    .metric-panel-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.25rem;
-    }
-    .metric-panel-top {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 0.35rem;
-    }
-    .metric-panel-desc {
-      font-size: 0.74rem;
-      color: var(--text-low);
-      margin-bottom: 1rem;
-      line-height: 1.4;
-    }
-    .metric-stat-hero {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--teal-primary);
+    .tab-content-panel.active {
+      display: block;
     }
 
-    .raw-prom-container {
-      background: #060910;
-      border: 1px solid var(--border-subtle);
-      border-radius: 8px;
-      padding: 1.15rem;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.76rem;
+    /* Prometheus Console */
+    .prom-metric-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .prom-raw-view {
+      background: rgba(6, 11, 20, 0.95);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-family: var(--font-mono);
+      font-size: 11px;
       color: #7dd3fc;
       max-height: 480px;
       overflow-y: auto;
       white-space: pre-wrap;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
-    /* VIEW 3: CORRELATED LOGS TERMINAL */
-    .logs-terminal-frame {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .logs-search-strip {
-      padding: 0.85rem 1.25rem;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-    .search-box-input {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border-subtle);
-      border-radius: 6px;
-      padding: 0.45rem 0.85rem;
-      color: var(--text-high);
-      font-size: 0.8rem;
-      outline: none;
-      min-width: 280px;
-    }
-    .search-box-input:focus {
-      border-color: var(--teal-primary);
-    }
-    .logs-datatable {
+    /* Logs Table */
+    .logs-table-full {
       width: 100%;
       border-collapse: collapse;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.76rem;
+      font-family: var(--font-mono);
+      font-size: 11px;
     }
-    .logs-datatable th {
+    .logs-table-full th {
       background: rgba(0, 0, 0, 0.25);
-      color: var(--text-low);
+      color: var(--text-dim);
       text-align: left;
-      padding: 0.65rem 0.85rem;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--border-subtle);
-      font-weight: 600;
+      font-weight: 700;
     }
-    .logs-datatable td {
-      padding: 0.55rem 0.85rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    .logs-table-full td {
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
       vertical-align: top;
     }
-    .log-badge-info { color: var(--teal-primary); font-weight: 700; }
-    .log-badge-warn { color: var(--amber-accent); font-weight: 700; }
-    .log-badge-err  { color: var(--rose-accent); font-weight: 700; }
-    .trace-jump-link {
-      color: var(--sky-accent);
+    .trace-click-link {
+      color: var(--cyan-light);
       text-decoration: none;
       cursor: pointer;
     }
-    .trace-jump-link:hover {
+    .trace-click-link:hover {
       text-decoration: underline;
-    }
-
-    /* VIEW 4: ARCHITECTURE VIVA CHEATSHEET */
-    .arch-doc-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-subtle);
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin-bottom: 1.25rem;
-      line-height: 1.6;
-    }
-    .arch-doc-card h3 {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.15rem;
-      color: var(--teal-primary);
-      margin-bottom: 0.65rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .arch-doc-card p {
-      font-size: 0.85rem;
-      color: var(--text-medium);
-      margin-bottom: 0.75rem;
-    }
-    .arch-list {
-      padding-left: 1.25rem;
-      font-size: 0.82rem;
-      color: var(--text-medium);
-    }
-    .arch-list li {
-      margin-bottom: 0.4rem;
     }
   </style>
 </head>
 <body>
+  <!-- Ambient background glow layers matching HydroPond.ai -->
+  <div class="ambient-glow top-left"></div>
+  <div class="ambient-glow bottom-right"></div>
+  <div class="bg-grid-pattern"></div>
 
-  <!-- LEFT WORKBENCH SIDEBAR -->
-  <aside class="workbench-sidebar">
-    <div class="sidebar-brand-box">
-      <div class="brand-mark">
-        <i class="fa-solid fa-microchip"></i>
-      </div>
-      <div class="brand-titles">
-        <h1>HydroPond Core</h1>
-        <span>Telemetry Engine</span>
-      </div>
-    </div>
-
-    <div class="service-health-badge">
-      <div class="status-beacon"></div>
-      <div>
-        <div style="font-weight: 700; color: #fff;">OpenTelemetry SDK</div>
-        <div style="color: var(--text-low); font-size: 0.68rem;">v1.45.1 • Active Ingestion</div>
-      </div>
-    </div>
-
-    <div class="nav-section-title">Observability Workbenches</div>
-    <ul class="sidebar-menu">
-      <li class="menu-item active" data-view="view-traces">
-        <button><i class="fa-solid fa-timeline"></i> Distributed Tracing</button>
-      </li>
-      <li class="menu-item" data-view="view-metrics">
-        <button><i class="fa-solid fa-gauge-high"></i> Prometheus Metrics</button>
-      </li>
-      <li class="menu-item" data-view="view-logs">
-        <button><i class="fa-solid fa-terminal"></i> Correlated Logs</button>
-      </li>
-      <li class="menu-item" data-view="view-arch">
-        <button><i class="fa-solid fa-network-wired"></i> Architecture & VIVA</button>
-      </li>
-    </ul>
-
-    <div class="sidebar-bottom-actions">
-      <a href="/metrics" target="_blank" class="btn-action-side" title="Open Prometheus Scraping Stream">
-        <i class="fa-solid fa-arrow-up-right-from-square"></i> Raw Prometheus (/metrics)
-      </a>
-      <a href="/" class="btn-action-side" title="Return to Satellite Map">
-        <i class="fa-solid fa-map"></i> GIS Pond Map
-      </a>
-    </div>
-  </aside>
-
-  <!-- MAIN WORKBENCH VIEWPORT -->
-  <main class="workbench-content">
-    <!-- TOP TOOLBAR -->
-    <header class="workbench-topbar">
-      <div class="topbar-meta">
-        <span class="env-chip"><i class="fa-solid fa-cube"></i> service: csd-village-pond-planner</span>
-        <span class="env-chip"><i class="fa-solid fa-tag"></i> v1.0.0</span>
+  <div id="app">
+    <!-- ================= TOP GLOBAL HEADER (EXACT SAME AS HYDROPOND AI) ================= -->
+    <header class="global-header">
+      <div class="header-brand" id="brand-home-link" onclick="window.location.href='/'" title="HydroPond AI Web-GIS Platform">
+        <div class="brand-logo">
+          <i class="fa-solid fa-water-ladder"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <span class="brand-name">HydroPond<span class="brand-highlight">.ai</span></span>
+            <span class="brand-badge"><i class="fa-solid fa-satellite-dish"></i> OTel v1.45.1</span>
+          </div>
+          <span class="brand-tagline">Candidate Pond Location Finder & Catchment Analysis</span>
+        </div>
       </div>
 
-      <div class="topbar-controls">
-        <button class="btn-trigger-exec" id="btn-trigger-pipeline" title="Run analysis pipeline on sample contours to create fresh trace">
-          <i class="fa-solid fa-bolt"></i> Run Pipeline Trace
+      <!-- Header Center: Drawer Mode Navigation Tabs -->
+      <div class="header-nav">
+        <a href="/" class="nav-tab-btn" style="text-decoration:none;" title="Configure Land Area Selection & Ingestion">
+          <i class="fa-solid fa-vector-square"></i>
+          <span>1. Select Land Area</span>
+        </a>
+        <a href="/" class="nav-tab-btn" style="text-decoration:none;" title="Inspect Optimal Pond & Catchment Analytics">
+          <i class="fa-solid fa-trophy"></i>
+          <span>2. Pond Results & Catchment</span>
+        </a>
+        <a href="/observability" class="nav-tab-btn active" style="text-decoration:none;" title="OpenTelemetry Live Observability Dashboard">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>3. OpenTelemetry Live</span>
+        </a>
+      </div>
+
+      <!-- Top Right Actions -->
+      <div class="header-right">
+        <button class="primary-btn" id="btn-trigger-analysis" style="padding: 7px 14px; font-size: 12px; font-weight: 700; border-radius: 8px; display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%); color: #fff; border: none; cursor: pointer; box-shadow: 0 0 12px var(--cyan-glow);" title="Execute Pipeline to Generate Fresh Trace">
+          <i class="fa-solid fa-play"></i>
+          <span>Trigger Pipeline Trace</span>
         </button>
-        <button class="btn-icon-soft" id="btn-flush-store" title="Clear in-memory telemetry buffer">
-          <i class="fa-solid fa-rotate-left"></i> Reset Store
+        <a href="/metrics" target="_blank" class="nav-tab-btn" style="text-decoration:none; display:flex; align-items:center; gap:6px; padding: 6px 12px; font-size: 12px;" title="Prometheus Metrics Endpoint">
+          <i class="fa-solid fa-terminal"></i>
+          <span>/metrics</span>
+        </a>
+        <button class="icon-control-btn" id="btn-clear-store" title="Reset In-Memory Telemetry Buffer">
+          <i class="fa-solid fa-rotate-left"></i>
         </button>
       </div>
     </header>
 
-    <!-- CONTENT CANVAS -->
-    <div class="view-scroll-canvas">
-      <!-- TOP KPI METRIC RIBBON -->
-      <section class="stats-ribbon">
-        <div class="stat-tile">
-          <div class="stat-title">Ingested Traces</div>
-          <div class="stat-metric" id="kpi-traces-cnt">0</div>
-          <div class="stat-sub"><i class="fa-solid fa-database"></i> Circular buffer</div>
+    <!-- ================= MAIN OBSERVABILITY WORKSPACE ================= -->
+    <main class="otel-page-container">
+      <!-- Subnav Dock Matching HydroPond Drawer Tabs -->
+      <div class="otel-subnav-dock">
+        <div class="drawer-tabs-row" style="margin: 0;">
+          <button class="drawer-tab-btn active" data-tab="tab-traces">
+            <i class="fa-solid fa-bars-staggered"></i> Traces & Waterfall
+          </button>
+          <button class="drawer-tab-btn" data-tab="tab-metrics">
+            <i class="fa-solid fa-chart-column"></i> Prometheus Metrics
+          </button>
+          <button class="drawer-tab-btn" data-tab="tab-logs">
+            <i class="fa-solid fa-terminal"></i> Correlated Logs
+          </button>
+          <button class="drawer-tab-btn" data-tab="tab-arch">
+            <i class="fa-solid fa-server"></i> System Architecture
+          </button>
         </div>
-        <div class="stat-tile">
-          <div class="stat-title">Recorded Spans</div>
-          <div class="stat-metric" id="kpi-spans-cnt">0</div>
-          <div class="stat-sub"><i class="fa-solid fa-layer-group"></i> 6 Pipeline stages</div>
+
+        <div class="otel-status-indicator">
+          <div class="pulse-bulb"></div>
+          <span>OpenTelemetry Active Ingestion • csd-village-pond-planner</span>
         </div>
-        <div class="stat-tile">
-          <div class="stat-title">Mean Pipeline Time</div>
-          <div class="stat-metric" id="kpi-avg-lat">0 ms</div>
-          <div class="stat-sub"><i class="fa-solid fa-stopwatch"></i> End-to-end execution</div>
+      </div>
+
+      <!-- KPI Summary Cards Grid -->
+      <section class="otel-kpi-grid">
+        <div class="otel-kpi-card">
+          <div class="otel-kpi-label">
+            <span>Total Traces</span>
+            <i class="fa-solid fa-diagram-project" style="color: var(--cyan-light);"></i>
+          </div>
+          <div class="otel-kpi-val" id="val-traces">0</div>
+          <div class="otel-kpi-sub"><i class="fa-solid fa-database"></i> Bounded circular store</div>
         </div>
-        <div class="stat-tile">
-          <div class="stat-title">Candidates Discovered</div>
-          <div class="stat-metric" id="kpi-sinks-cnt">0</div>
-          <div class="stat-sub"><i class="fa-solid fa-water"></i> D8 BFS Local Minima</div>
+        <div class="otel-kpi-card">
+          <div class="otel-kpi-label">
+            <span>Spans Recorded</span>
+            <i class="fa-solid fa-layer-group" style="color: var(--purple-light);"></i>
+          </div>
+          <div class="otel-kpi-val" id="val-spans">0</div>
+          <div class="otel-kpi-sub"><i class="fa-solid fa-microchip"></i> Across 7 GIS pipeline stages</div>
         </div>
-        <div class="stat-tile">
-          <div class="stat-title">Correlated Log Records</div>
-          <div class="stat-metric" id="kpi-logs-cnt">0</div>
-          <div class="stat-sub"><i class="fa-solid fa-link"></i> Linked to active trace</div>
+        <div class="otel-kpi-card">
+          <div class="otel-kpi-label">
+            <span>Avg Pipeline Latency</span>
+            <i class="fa-solid fa-stopwatch" style="color: var(--amber-light);"></i>
+          </div>
+          <div class="otel-kpi-val" id="val-latency">0 ms</div>
+          <div class="otel-kpi-sub"><i class="fa-solid fa-gauge-high"></i> End-to-end execution</div>
+        </div>
+        <div class="otel-kpi-card">
+          <div class="otel-kpi-label">
+            <span>Pond Sinks Discovered</span>
+            <i class="fa-solid fa-water" style="color: var(--emerald-light);"></i>
+          </div>
+          <div class="otel-kpi-val" id="val-sinks">0</div>
+          <div class="otel-kpi-sub"><i class="fa-solid fa-water-ladder"></i> Hydrological candidates</div>
+        </div>
+        <div class="otel-kpi-card">
+          <div class="otel-kpi-label">
+            <span>Correlated Logs</span>
+            <i class="fa-solid fa-file-lines" style="color: var(--cyan-light);"></i>
+          </div>
+          <div class="otel-kpi-val" id="val-logs">0</div>
+          <div class="otel-kpi-sub"><i class="fa-solid fa-link"></i> Linked to active trace/span</div>
         </div>
       </section>
 
-      <!-- VIEW 1: TRACES & WATERFALL GANTT -->
-      <div class="view-container active" id="view-traces">
-        <div class="traces-split-workbench">
-          <!-- Left: Trace Directory -->
-          <div class="trace-master-list">
-            <div class="trace-list-header">
+      <!-- TAB 1: DISTRIBUTED TRACES & WATERFALL -->
+      <div class="tab-content-panel active" id="tab-traces">
+        <div class="otel-split-view">
+          <!-- Left: Trace Master List -->
+          <div class="otel-glass-panel">
+            <div class="panel-top-bar">
               <span>Execution Traces</span>
-              <span id="trace-counter-badge" style="color: var(--teal-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;">0 recorded</span>
+              <span id="badge-traces-count" style="color: var(--cyan-light); font-family: var(--font-mono); font-size: 11px;">0 traces</span>
             </div>
-            <div class="trace-scroll-area" id="trace-items-list">
-              <div style="padding: 2.5rem; text-align: center; color: var(--text-low); font-size: 0.8rem;">
-                No execution traces recorded yet.<br>Click <strong>"Run Pipeline Trace"</strong> to generate telemetry!
+            <div style="overflow-y: auto; max-height: 620px;" id="trace-list-container">
+              <div style="padding: 40px 20px; text-align: center; color: var(--text-dim); font-size: 13px;">
+                No execution traces recorded yet.<br>Click <strong>"Trigger Pipeline Trace"</strong> above to run!
               </div>
             </div>
           </div>
 
-          <!-- Right: Gantt Timeline & Attributes -->
-          <div class="trace-gantt-pane" id="trace-gantt-pane">
-            <div style="padding: 3.5rem; text-align: center; color: var(--text-low);">
-              <i class="fa-solid fa-diagram-project" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.25;"></i>
-              <p>Select an execution trace from the left panel to inspect the hierarchical Gantt timeline, stage offsets, and OpenTelemetry attributes.</p>
+          <!-- Right: Interactive Waterfall Gantt & Details -->
+          <div class="otel-glass-panel trace-detail-box" id="trace-detail-box">
+            <div style="padding: 60px 20px; text-align: center; color: var(--text-dim);">
+              <i class="fa-solid fa-network-wired" style="font-size: 36px; margin-bottom: 14px; opacity: 0.3;"></i>
+              <p>Select a trace from the left panel to inspect the execution waterfall, latency breakdown per GIS stage, and OpenTelemetry attributes.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- VIEW 2: PROMETHEUS METRICS -->
-      <div class="view-container" id="view-metrics">
-        <div class="metrics-dashboard-grid">
-          <div class="metric-panel-card">
-            <div class="metric-panel-top">
-              <i class="fa-solid fa-arrow-trend-up" style="color: var(--teal-primary);"></i>
+      <!-- TAB 2: PROMETHEUS METRICS -->
+      <div class="tab-content-panel" id="tab-metrics">
+        <div class="prom-metric-cards">
+          <div class="otel-kpi-card">
+            <div class="otel-kpi-label">
               <span>pond_analysis_requests_total</span>
+              <i class="fa-solid fa-calculator" style="color: var(--cyan-light);"></i>
             </div>
-            <div class="metric-panel-desc">OpenTelemetry Counter tracking incoming pipeline operations partitioned by success and failure statuses.</div>
-            <div class="metric-stat-hero" id="m-metric-reqs">0</div>
+            <div class="otel-kpi-val" id="pm-requests">0</div>
+            <div class="otel-kpi-sub">Total incoming contour analysis operations</div>
           </div>
-          <div class="metric-panel-card">
-            <div class="metric-panel-top">
-              <i class="fa-solid fa-clock" style="color: var(--amber-accent);"></i>
+          <div class="otel-kpi-card">
+            <div class="otel-kpi-label">
               <span>pond_analysis_duration_seconds</span>
+              <i class="fa-solid fa-clock" style="color: var(--amber-light);"></i>
             </div>
-            <div class="metric-panel-desc">OpenTelemetry Histogram recording end-to-end execution latencies across DEM and flow routing stages.</div>
-            <div class="metric-stat-hero" id="m-metric-lat">0 s</div>
+            <div class="otel-kpi-val" id="pm-latency">0 s</div>
+            <div class="otel-kpi-sub">Pipeline execution latency histogram</div>
           </div>
-          <div class="metric-panel-card">
-            <div class="metric-panel-top">
-              <i class="fa-solid fa-droplet" style="color: var(--sky-accent);"></i>
+          <div class="otel-kpi-card">
+            <div class="otel-kpi-label">
               <span>pond_candidates_found_total</span>
+              <i class="fa-solid fa-droplet" style="color: var(--emerald-light);"></i>
             </div>
-            <div class="metric-panel-desc">OpenTelemetry Counter measuring total hydrological depressions identified by uphill reverse BFS.</div>
-            <div class="metric-stat-hero" id="m-metric-sinks">0</div>
+            <div class="otel-kpi-val" id="pm-sinks">0</div>
+            <div class="otel-kpi-sub">Hydrological depressions identified via reverse BFS</div>
           </div>
         </div>
 
-        <div class="metric-panel-card">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-            <div class="metric-panel-top" style="margin: 0;">
-              <i class="fa-solid fa-file-code" style="color: var(--teal-primary);"></i>
-              <span>Live Prometheus Scrape Stream (/metrics)</span>
+        <div class="otel-glass-panel" style="padding: 16px 20px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div style="font-size: 14px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+              <i class="fa-solid fa-code" style="color: var(--cyan-light);"></i>
+              <span>Live Prometheus Scrape Exposition (/metrics)</span>
             </div>
-            <button class="btn-icon-soft" id="btn-refresh-scrape" style="font-size: 0.72rem; padding: 0.3rem 0.6rem;">
-              <i class="fa-solid fa-arrows-rotate"></i> Refresh Exposition
+            <button class="nav-tab-btn" id="btn-refresh-metrics" style="padding: 4px 10px; font-size: 11px;">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh
             </button>
           </div>
-          <div class="raw-prom-container" id="prom-stream-output">Fetching Prometheus metrics...</div>
+          <div class="prom-raw-view" id="prom-raw-view">Scraping Prometheus metrics...</div>
         </div>
       </div>
 
-      <!-- VIEW 3: CORRELATED LOGS -->
-      <div class="view-container" id="view-logs">
-        <div class="logs-terminal-frame">
-          <div class="logs-search-strip">
-            <input type="text" class="search-box-input" id="logs-query-input" placeholder="Filter by message or Trace ID..." />
-            <div style="font-size: 0.76rem; color: var(--text-low);">
-              Click any <strong style="color: var(--sky-accent);">Trace ID</strong> to jump directly to its waterfall analysis.
+      <!-- TAB 3: CORRELATED LOGS -->
+      <div class="tab-content-panel" id="tab-logs">
+        <div class="otel-glass-panel">
+          <div class="panel-top-bar" style="flex-wrap: wrap; gap: 12px;">
+            <input type="text" id="log-search-box" placeholder="Filter logs by message or Trace ID..." style="background: rgba(6, 11, 20, 0.85); border: 1px solid var(--border-medium); border-radius: 6px; padding: 6px 12px; color: #fff; font-size: 12px; outline: none; min-width: 260px;" />
+            <div style="font-size: 12px; color: var(--text-dim);">
+              Click any <strong style="color: var(--cyan-light);">Trace ID</strong> to open its waterfall analysis.
             </div>
           </div>
           <div style="overflow-x: auto; max-height: 600px;">
-            <table class="logs-datatable">
+            <table class="logs-table-full">
               <thead>
                 <tr>
                   <th style="width: 140px;">Timestamp</th>
-                  <th style="width: 75px;">Severity</th>
-                  <th style="width: 120px;">Module</th>
-                  <th style="width: 220px;">OpenTelemetry Trace Context</th>
+                  <th style="width: 75px;">Level</th>
+                  <th style="width: 120px;">Logger</th>
+                  <th style="width: 210px;">OpenTelemetry Trace Context</th>
                   <th>Log Message</th>
                 </tr>
               </thead>
-              <tbody id="logs-table-mount">
+              <tbody id="logs-mount-body">
                 <tr>
-                  <td colspan="5" style="text-align: center; color: var(--text-low); padding: 2rem;">Loading logs...</td>
+                  <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 30px;">Loading logs...</td>
                 </tr>
               </tbody>
             </table>
@@ -918,137 +646,146 @@
         </div>
       </div>
 
-      <!-- VIEW 4: ARCHITECTURE VIVA CHEATSHEET -->
-      <div class="view-container" id="view-arch">
-        <div class="arch-doc-card">
-          <h3><i class="fa-solid fa-cubes"></i> Observability Architecture & 3 Pillars</h3>
-          <p>This implementation instruments the AI-based Village Pond Planning backend following OpenTelemetry standards:</p>
-          <ul class="arch-list">
-            <li><strong>Distributed Tracing:</strong> Ingress HTTP requests are intercepted by <code>FlaskInstrumentor</code>. Within the request, custom child spans are dispatched for contour parsing, bicubic DEM generation, flow routing, catchment BFS, and Pareto scoring.</li>
-            <li><strong>Runtime Metrics:</strong> <code>PrometheusMetricReader</code> converts OpenTelemetry counter and histogram instruments into standard Prometheus metrics served on <code>/metrics</code>.</li>
-            <li><strong>Log Correlation:</strong> <code>TraceContextLogFilter</code> dynamically queries active span contexts to inject <code>trace_id</code> and <code>span_id</code> into all log records, linking logs to traces.</li>
+      <!-- TAB 4: ARCHITECTURE VIVA CHEATSHEET -->
+      <div class="tab-content-panel" id="tab-arch">
+        <div class="otel-kpi-card" style="margin-bottom: 16px; padding: 22px;">
+          <h3 style="font-family: var(--font-heading); font-size: 17px; color: var(--cyan-light); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-cubes"></i> 1. The 3 Pillars of Observability in HydroPond AI
+          </h3>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px;">
+            OpenTelemetry standardizes observability collection across distributed services into three correlated pillars:
+          </p>
+          <ul style="padding-left: 20px; font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+            <li><strong>Distributed Tracing:</strong> Ingress HTTP requests are captured by <code>FlaskInstrumentor</code>. Within the request, discrete child spans isolate latencies across contour parsing, bicubic DEM generation, D8 flow routing, river buffer filtering, reverse-BFS catchment delineate, and Pareto ranking.</li>
+            <li><strong>Runtime Metrics:</strong> <code>PrometheusMetricReader</code> converts OpenTelemetry counter and histogram instruments into standard Prometheus exposition format served at <code>/metrics</code>.</li>
+            <li><strong>Log Correlation:</strong> <code>TraceContextLogFilter</code> dynamically queries active span contexts to inject <code>trace_id</code> and <code>span_id</code> into all log records, linking logs directly to traces.</li>
           </ul>
         </div>
 
-        <div class="arch-doc-card">
-          <h3><i class="fa-solid fa-stopwatch"></i> Computational Latency Breakdown</h3>
-          <p>OpenTelemetry tracing isolates the computational stages in the hydrological pipeline:</p>
-          <ul class="arch-list">
-            <li><code>kml_parser.parse_contours</code>: I/O and parsing of 3D contour vertices.</li>
-            <li><code>dem_builder.build_dem</code>: Grid interpolation constructing the elevation surface.</li>
-            <li><code>terrain_analysis.flow_routing</code>: D8 flow routing, flow accumulation, river detection, and exclusion zone buffering.</li>
-            <li><code>catchment.find_pond_candidates</code>: Reverse BFS catchment delineation from candidate depression pour points.</li>
-            <li><code>pond_selector.score_and_select</code>: Multi-criteria evaluation, rainfall querying, and candidate ranking.</li>
+        <div class="otel-kpi-card" style="padding: 22px;">
+          <h3 style="font-family: var(--font-heading); font-size: 17px; color: var(--cyan-light); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-network-wired"></i> 2. Computational Latency Breakdown
+          </h3>
+          <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin-bottom: 12px;">
+            OpenTelemetry tracing eliminates blind spots by capturing execution latency for each stage of the AI pipeline:
+          </p>
+          <ul style="padding-left: 20px; font-size: 13px; color: var(--text-muted); line-height: 1.7;">
+            <li><code>kml_parser.parse_contours</code>: Extracts 3D contour vertices from uploaded KML/KMZ files.</li>
+            <li><code>dem_builder.build_dem</code>: Bicubic raster interpolation and Gaussian smoothing.</li>
+            <li><code>terrain_analysis.flow_routing</code>: D8 steepest-descent flow direction, flow accumulation, river detection, and exclusion zone buffering.</li>
+            <li><code>catchment.find_pond_candidates</code>: Reverse-BFS graph traversal delineating upstream drainage basins.</li>
+            <li><code>pond_selector.score_and_select</code>: Multi-criteria weighted scoring, Open-Meteo historical rainfall querying, and Pareto selection.</li>
+            <li><code>geojson_builder.build_geojson</code>: Serialization into spatial GeoJSON for Leaflet map overlay.</li>
           </ul>
         </div>
       </div>
-    </div>
-  </main>
+    </main>
+  </div>
 
   <script>
     // State
-    let activeTraceId = null;
-    let cachedLogs = [];
+    let currentActiveTrace = null;
+    let cachedLogsList = [];
 
-    // Elements
-    const menuItems = document.querySelectorAll('.menu-item');
-    const viewContainers = document.querySelectorAll('.view-container');
-    const traceItemsList = document.getElementById('trace-items-list');
-    const traceGanttPane = document.getElementById('trace-gantt-pane');
-    const promStreamOutput = document.getElementById('prom-stream-output');
-    const logsTableMount = document.getElementById('logs-table-mount');
-    const logsQueryInput = document.getElementById('logs-query-input');
+    // DOM Elements
+    const subTabBtns = document.querySelectorAll('.drawer-tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-content-panel');
+    const traceListContainer = document.getElementById('trace-list-container');
+    const traceDetailBox = document.getElementById('trace-detail-box');
+    const promRawView = document.getElementById('prom-raw-view');
+    const logsMountBody = document.getElementById('logs-mount-body');
+    const logSearchBox = document.getElementById('log-search-box');
 
     // KPI Elements
-    const kpiTracesCnt = document.getElementById('kpi-traces-cnt');
-    const kpiSpansCnt = document.getElementById('kpi-spans-cnt');
-    const kpiAvgLat = document.getElementById('kpi-avg-lat');
-    const kpiSinksCnt = document.getElementById('kpi-sinks-cnt');
-    const kpiLogsCnt = document.getElementById('kpi-logs-cnt');
-    const mMetricReqs = document.getElementById('m-metric-reqs');
-    const mMetricLat = document.getElementById('m-metric-lat');
-    const mMetricSinks = document.getElementById('m-metric-sinks');
+    const valTraces = document.getElementById('val-traces');
+    const valSpans = document.getElementById('val-spans');
+    const valLatency = document.getElementById('val-latency');
+    const valSinks = document.getElementById('val-sinks');
+    const valLogs = document.getElementById('val-logs');
+    const pmRequests = document.getElementById('pm-requests');
+    const pmLatency = document.getElementById('pm-latency');
+    const pmSinks = document.getElementById('pm-sinks');
 
-    // Navigation Switcher
-    menuItems.forEach(item => {
-      item.addEventListener('click', () => {
-        menuItems.forEach(i => i.classList.remove('active'));
-        viewContainers.forEach(v => v.classList.remove('active'));
-        item.classList.add('active');
-        const viewId = item.getAttribute('data-view');
-        document.getElementById(viewId).classList.add('active');
-        if (viewId === 'view-metrics') {
-          fetchPrometheusStream();
+    // Tab Switching
+    subTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        subTabBtns.forEach(b => b.classList.remove('active'));
+        tabPanels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const targetId = btn.getAttribute('data-tab');
+        document.getElementById(targetId).classList.add('active');
+        if (targetId === 'tab-metrics') {
+          fetchPrometheusData();
         }
       });
     });
 
-    // Ingest Overview KPIs
-    async function loadOverview() {
+    // Overview KPIs
+    async function fetchOverviewStats() {
       try {
         const res = await fetch('/api/telemetry/overview');
         if (!res.ok) return;
         const d = await res.json();
-        kpiTracesCnt.textContent = d.total_traces || 0;
-        kpiSpansCnt.textContent = d.total_spans || 0;
-        kpiAvgLat.textContent = (d.avg_duration_ms || 0) + ' ms';
-        kpiSinksCnt.textContent = d.total_candidates_found || 0;
-        kpiLogsCnt.textContent = d.log_records_count || 0;
-        mMetricReqs.textContent = d.total_requests || 0;
-        mMetricLat.textContent = (d.avg_duration_ms ? (d.avg_duration_ms / 1000).toFixed(2) : 0) + ' s';
-        mMetricSinks.textContent = d.total_candidates_found || 0;
-      } catch (e) {
-        console.error('Error fetching overview:', e);
+        valTraces.textContent = d.total_traces || 0;
+        valSpans.textContent = d.total_spans || 0;
+        valLatency.textContent = (d.avg_duration_ms || 0) + ' ms';
+        valSinks.textContent = d.total_candidates_found || 0;
+        valLogs.textContent = d.log_records_count || 0;
+        pmRequests.textContent = d.total_requests || 0;
+        pmLatency.textContent = (d.avg_duration_ms ? (d.avg_duration_ms / 1000).toFixed(2) : 0) + ' s';
+        pmSinks.textContent = d.total_candidates_found || 0;
+      } catch (err) {
+        console.error('Error fetching overview stats:', err);
       }
     }
 
-    // Load Traces Directory
-    async function loadTraces() {
+    // Traces Directory
+    async function fetchTracesDirectory() {
       try {
         const res = await fetch('/api/telemetry/traces');
         if (!res.ok) return;
-        const data = await res.json();
-        const traces = data.traces || [];
-        document.getElementById('trace-counter-badge').textContent = `${traces.length} recorded`;
+        const d = await res.json();
+        const traces = d.traces || [];
+        document.getElementById('badge-traces-count').textContent = `${traces.length} traces`;
 
         if (traces.length === 0) {
-          traceItemsList.innerHTML = `
-            <div style="padding: 2.5rem; text-align: center; color: var(--text-low); font-size: 0.8rem;">
-              No execution traces recorded yet.<br>Click <strong>"Run Pipeline Trace"</strong> to generate telemetry!
+          traceListContainer.innerHTML = `
+            <div style="padding: 40px 20px; text-align: center; color: var(--text-dim); font-size: 13px;">
+              No execution traces recorded yet.<br>Click <strong>"Trigger Pipeline Trace"</strong> above to run!
             </div>
           `;
           return;
         }
 
-        traceItemsList.innerHTML = traces.map(t => {
+        traceListContainer.innerHTML = traces.map(t => {
           const isErr = t.status === 'ERROR';
-          const isSelected = t.trace_id === activeTraceId;
+          const isSel = t.trace_id === currentActiveTrace;
           return `
-            <div class="trace-card ${isSelected ? 'active' : ''}" onclick="openTrace('${t.trace_id}')">
-              <div class="trace-card-top">
-                <span class="trace-entry-name">${escapeText(t.root_span)}</span>
-                <span class="status-tag ${isErr ? 'tag-err' : 'tag-ok'}">${t.status}</span>
+            <div class="trace-item-row ${isSel ? 'active' : ''}" onclick="selectAndRenderTrace('${t.trace_id}')">
+              <div class="trace-item-header">
+                <span class="trace-item-name">${escapeHtml(t.root_span)}</span>
+                <span class="badge-pill ${isErr ? 'badge-err' : 'badge-ok'}">${t.status}</span>
               </div>
-              <div class="trace-card-footer">
-                <span>${t.duration_ms} ms • ${t.spans_count} spans</span>
-                <span>${formatIso(t.start_time_iso)}</span>
+              <div class="trace-item-meta">
+                <span>${t.duration_ms} ms &bull; ${t.spans_count} spans</span>
+                <span>${formatIsoTime(t.start_time_iso)}</span>
               </div>
             </div>
           `;
         }).join('');
 
-        if (!activeTraceId && traces.length > 0) {
-          openTrace(traces[0].trace_id);
+        if (!currentActiveTrace && traces.length > 0) {
+          selectAndRenderTrace(traces[0].trace_id);
         }
-      } catch (e) {
-        console.error('Error fetching traces:', e);
+      } catch (err) {
+        console.error('Error fetching traces:', err);
       }
     }
 
-    // Open & Render Gantt Waterfall
-    async function openTrace(traceId) {
-      activeTraceId = traceId;
-      document.querySelectorAll('.trace-card').forEach(el => {
+    // Select and Render Trace Waterfall
+    async function selectAndRenderTrace(traceId) {
+      currentActiveTrace = traceId;
+      document.querySelectorAll('.trace-item-row').forEach(el => {
         el.classList.toggle('active', el.getAttribute('onclick').includes(traceId));
       });
 
@@ -1056,43 +793,43 @@
         const res = await fetch(`/api/telemetry/traces/${traceId}`);
         if (!res.ok) return;
         const tr = await res.json();
-        renderGantt(tr);
-      } catch (e) {
-        console.error('Error loading trace detail:', e);
+        renderWaterfallCanvas(tr);
+      } catch (err) {
+        console.error('Error loading trace details:', err);
       }
     }
 
-    function renderGantt(tr) {
+    function renderWaterfallCanvas(tr) {
       const isErr = tr.status === 'ERROR';
       const spans = tr.spans || [];
 
-      let out = `
-        <div class="gantt-header-summary">
+      let html = `
+        <div class="trace-overview-header">
           <div>
-            <div style="font-size: 0.72rem; color: var(--text-low); margin-bottom: 0.2rem;">Root Operation</div>
-            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: #fff;">
-              ${escapeText(tr.root_span)}
+            <div style="font-size: 11px; color: var(--text-dim); margin-bottom: 3px;">Root Operation</div>
+            <div style="font-family: var(--font-heading); font-size: 18px; font-weight: 800; color: #fff;">
+              ${escapeHtml(tr.root_span)}
             </div>
           </div>
-          <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <div class="trace-hash-pill" onclick="navigator.clipboard.writeText('${tr.trace_id}'); alert('Trace ID copied!')" title="Click to copy Trace ID">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="trace-id-badge" onclick="navigator.clipboard.writeText('${tr.trace_id}'); alert('Trace ID copied!')" title="Click to copy Trace ID">
               <i class="fa-solid fa-fingerprint"></i>
               <span>${tr.trace_id.substring(0, 16)}...</span>
-              <i class="fa-regular fa-copy" style="font-size: 0.7rem;"></i>
+              <i class="fa-regular fa-copy" style="font-size: 11px;"></i>
             </div>
-            <span class="status-tag ${isErr ? 'tag-err' : 'tag-ok'}" style="font-size: 0.78rem; padding: 0.25rem 0.6rem;">
+            <span class="badge-pill ${isErr ? 'badge-err' : 'badge-ok'}" style="font-size: 11px; padding: 3px 8px;">
               ${tr.status}
             </span>
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--teal-primary);">
+            <div style="font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--cyan-light);">
               ${tr.total_duration_ms} ms
             </div>
           </div>
         </div>
 
-        <div class="gantt-timeline-box">
-          <div class="gantt-axis-row">
+        <div class="waterfall-canvas">
+          <div class="waterfall-header-row">
             <div>SPAN TREE (${spans.length} spans)</div>
-            <div class="axis-ticks">
+            <div class="waterfall-ticks">
               <span>0 ms</span>
               <span>${(tr.total_duration_ms * 0.25).toFixed(1)} ms</span>
               <span>${(tr.total_duration_ms * 0.50).toFixed(1)} ms</span>
@@ -1107,17 +844,17 @@
         if (s.name.startsWith('POST') || s.name.startsWith('GET')) typeClass = 'server';
         else if (s.name.includes('dem') || s.name.includes('terrain') || s.name.includes('catchment')) typeClass = 'gis';
         else if (s.name.includes('score')) typeClass = 'scoring';
-        else if (s.name === 'GET' || s.name.includes('osm')) typeClass = 'client-call';
+        else if (s.name === 'GET' || s.name.includes('osm')) typeClass = 'client';
 
-        const padLeft = s.depth * 15;
-        out += `
-          <div class="gantt-span-row ${idx === 0 ? 'selected' : ''}" id="span-row-${s.span_id}" onclick="inspectAttributes('${s.span_id}')">
-            <div class="span-title-cell" style="padding-left: ${padLeft}px;" title="${escapeText(s.name)}">
-              <i class="fa-solid fa-circle" style="font-size: 0.38rem; color: ${s.status === 'ERROR' ? 'var(--rose-accent)' : 'var(--teal-primary)'};"></i>
-              <span>${escapeText(s.name)}</span>
+        const indentPx = s.depth * 15;
+        html += `
+          <div class="waterfall-span-row ${idx === 0 ? 'selected' : ''}" id="span-row-${s.span_id}" onclick="inspectSpanDetails('${s.span_id}')">
+            <div class="span-name-label" style="padding-left: ${indentPx}px;" title="${escapeHtml(s.name)}">
+              <i class="fa-solid fa-circle" style="font-size: 5px; color: ${s.status === 'ERROR' ? 'var(--rose-light)' : 'var(--cyan-light)'};"></i>
+              <span>${escapeHtml(s.name)}</span>
             </div>
-            <div class="span-bar-lane">
-              <div class="gantt-bar ${typeClass}" style="left: ${s.waterfall_pct_start}%; width: ${s.waterfall_pct_width}%;">
+            <div class="span-bar-wrapper">
+              <div class="span-bar-fill ${typeClass}" style="left: ${s.waterfall_pct_start}%; width: ${s.waterfall_pct_width}%;">
                 ${s.duration_ms} ms
               </div>
             </div>
@@ -1125,33 +862,33 @@
         `;
       });
 
-      out += `</div><div id="attributes-drawer-mount"></div>`;
-      traceGanttPane.innerHTML = out;
+      html += `</div><div id="span-attrs-mount"></div>`;
+      traceDetailBox.innerHTML = html;
 
       if (spans.length > 0) {
-        inspectAttributes(spans[0].span_id);
+        inspectSpanDetails(spans[0].span_id);
       }
     }
 
-    async function inspectAttributes(spanId) {
-      if (!activeTraceId) return;
-      document.querySelectorAll('.gantt-span-row').forEach(r => r.classList.remove('selected'));
-      const row = document.getElementById(`span-row-${spanId}`);
-      if (row) row.classList.add('selected');
+    async function inspectSpanDetails(spanId) {
+      if (!currentActiveTrace) return;
+      document.querySelectorAll('.waterfall-span-row').forEach(r => r.classList.remove('selected'));
+      const activeEl = document.getElementById(`span-row-${spanId}`);
+      if (activeEl) activeEl.classList.add('selected');
 
       try {
-        const res = await fetch(`/api/telemetry/traces/${activeTraceId}`);
+        const res = await fetch(`/api/telemetry/traces/${currentActiveTrace}`);
         if (!res.ok) return;
         const tr = await res.json();
         const span = (tr.spans || []).find(s => s.span_id === spanId);
         if (!span) return;
 
-        const mount = document.getElementById('attributes-drawer-mount');
+        const mount = document.getElementById('span-attrs-mount');
         if (!mount) return;
 
         let rows = `
           <tr><th>span_id</th><td>${span.span_id}</td></tr>
-          <tr><th>parent_span_id</th><td>${span.parent_id || 'None (Root Execution)'}</td></tr>
+          <tr><th>parent_span_id</th><td>${span.parent_id || 'None (Root Operation)'}</td></tr>
           <tr><th>start_time</th><td>${span.start_time_iso}</td></tr>
           <tr><th>duration_ms</th><td>${span.duration_ms} ms</td></tr>
           <tr><th>status</th><td>${span.status} ${span.status_description ? `(${span.status_description})` : ''}</td></tr>
@@ -1159,42 +896,42 @@
 
         if (span.attributes && Object.keys(span.attributes).length > 0) {
           for (const [k, v] of Object.entries(span.attributes)) {
-            rows += `<tr><th>${escapeText(k)}</th><td>${escapeText(String(v))}</td></tr>`;
+            rows += `<tr><th>${escapeHtml(k)}</th><td>${escapeHtml(String(v))}</td></tr>`;
           }
         }
 
         mount.innerHTML = `
-          <div class="span-meta-drawer">
-            <div class="drawer-header-title">
-              <i class="fa-solid fa-circle-nodes"></i>
-              <span>Span Attributes: <strong>${escapeText(span.name)}</strong></span>
+          <div class="span-attrs-box">
+            <div style="font-size: 13px; font-weight: 700; color: var(--cyan-light); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>OpenTelemetry Span Attributes: <strong>${escapeHtml(span.name)}</strong></span>
             </div>
-            <table class="attributes-grid">
+            <table class="attrs-table-view">
               <tbody>${rows}</tbody>
             </table>
           </div>
         `;
-      } catch (e) {
-        console.error('Error inspecting attributes:', e);
+      } catch (err) {
+        console.error('Error inspecting span:', err);
       }
     }
 
     // Load Correlated Logs
-    async function loadLogs() {
+    async function fetchCorrelatedLogs() {
       try {
         const res = await fetch('/api/telemetry/logs?limit=150');
         if (!res.ok) return;
         const d = await res.json();
-        cachedLogs = d.logs || [];
+        cachedLogsList = d.logs || [];
         renderLogsTable();
-      } catch (e) {
-        console.error('Error fetching logs:', e);
+      } catch (err) {
+        console.error('Error loading logs:', err);
       }
     }
 
     function renderLogsTable() {
-      const q = (logsQueryInput.value || '').trim().toLowerCase();
-      const filtered = cachedLogs.filter(l => {
+      const q = (logSearchBox.value || '').trim().toLowerCase();
+      const filtered = cachedLogsList.filter(l => {
         if (!q) return true;
         return (l.message && l.message.toLowerCase().includes(q)) ||
                (l.trace_id && l.trace_id.toLowerCase().includes(q)) ||
@@ -1202,95 +939,95 @@
       });
 
       if (filtered.length === 0) {
-        logsTableMount.innerHTML = `
+        logsMountBody.innerHTML = `
           <tr>
-            <td colspan="5" style="text-align: center; color: var(--text-low); padding: 2rem;">No matching log events.</td>
+            <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 30px;">No matching log events.</td>
           </tr>
         `;
         return;
       }
 
-      logsTableMount.innerHTML = filtered.map(l => {
-        let badgeClass = 'log-badge-info';
-        if (l.level === 'WARNING') badgeClass = 'log-badge-warn';
-        if (l.level === 'ERROR') badgeClass = 'log-badge-err';
+      logsMountBody.innerHTML = filtered.map(l => {
+        let lvlColor = 'var(--cyan-light)';
+        if (l.level === 'WARNING') lvlColor = 'var(--amber-light)';
+        if (l.level === 'ERROR') lvlColor = 'var(--rose-light)';
 
         const hasTrace = l.has_trace;
         const traceCell = hasTrace
-          ? `<a class="trace-jump-link" onclick="jumpToTrace('${l.trace_id}')" title="Inspect this trace"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${l.trace_id.substring(0, 16)}...</a>`
-          : `<span style="color: var(--text-low);">-</span>`;
+          ? `<a class="trace-click-link" onclick="jumpToTraceView('${l.trace_id}')" title="Inspect trace waterfall"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${l.trace_id.substring(0, 16)}...</a>`
+          : `<span style="color: var(--text-dim);">-</span>`;
 
         return `
           <tr>
-            <td style="color: var(--text-low);">${formatIso(l.timestamp)}</td>
-            <td class="${badgeClass}">${l.level}</td>
-            <td style="color: var(--text-medium);">${escapeText(l.logger || '')}</td>
+            <td style="color: var(--text-dim);">${formatIsoTime(l.timestamp)}</td>
+            <td style="color: ${lvlColor}; font-weight: 700;">${l.level}</td>
+            <td style="color: var(--text-muted);">${escapeHtml(l.logger || '')}</td>
             <td>${traceCell}</td>
-            <td style="color: var(--text-high);">${escapeText(l.message || '')}</td>
+            <td style="color: #fff;">${escapeHtml(l.message || '')}</td>
           </tr>
         `;
       }).join('');
     }
 
-    logsQueryInput.addEventListener('input', renderLogsTable);
+    logSearchBox.addEventListener('input', renderLogsTable);
 
-    function jumpToTrace(tid) {
-      document.querySelector('[data-view="view-traces"]').click();
-      openTrace(tid);
+    function jumpToTraceView(tid) {
+      document.querySelector('[data-tab="tab-traces"]').click();
+      selectAndRenderTrace(tid);
     }
 
-    // Load Prometheus Scrape
-    async function fetchPrometheusStream() {
+    // Prometheus Scrape
+    async function fetchPrometheusData() {
       try {
         const res = await fetch('/metrics');
         if (!res.ok) return;
-        promStreamOutput.textContent = await res.text();
-      } catch (e) {
-        promStreamOutput.textContent = 'Error scraping /metrics: ' + e;
+        promRawView.textContent = await res.text();
+      } catch (err) {
+        promRawView.textContent = 'Error scraping /metrics: ' + err;
       }
     }
-    document.getElementById('btn-refresh-scrape').addEventListener('click', fetchPrometheusStream);
+    document.getElementById('btn-refresh-metrics').addEventListener('click', fetchPrometheusData);
 
-    // Trigger Pipeline Execution Trace
-    document.getElementById('btn-trigger-pipeline').addEventListener('click', async () => {
-      const btn = document.getElementById('btn-trigger-pipeline');
+    // Trigger Pipeline Trace
+    document.getElementById('btn-trigger-analysis').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-trigger-analysis');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running Analysis...';
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Running Analysis...</span>';
 
       try {
         const res = await fetch('/api/sampleRun?top_n=3&grid_res=80', { method: 'POST' });
         const d = await res.json();
         if (res.ok) {
           const tid = d.metadata ? d.metadata.trace_id : null;
-          await refreshTelemetry();
-          if (tid) openTrace(tid);
+          await refreshAllTelemetry();
+          if (tid) selectAndRenderTrace(tid);
         } else {
           alert('Pipeline error: ' + (d.error || 'Unknown error'));
         }
-      } catch (e) {
-        alert('Execution failed: ' + e);
+      } catch (err) {
+        alert('Execution failed: ' + err);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Run Pipeline Trace';
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> <span>Trigger Pipeline Trace</span>';
       }
     });
 
-    // Reset Store
-    document.getElementById('btn-flush-store').addEventListener('click', async () => {
+    // Reset Telemetry Store
+    document.getElementById('btn-clear-store').addEventListener('click', async () => {
       if (!confirm('Flush in-memory trace and log store?')) return;
       await fetch('/api/telemetry/clear', { method: 'POST' });
-      activeTraceId = null;
-      await refreshTelemetry();
-      traceGanttPane.innerHTML = `
-        <div style="padding: 3.5rem; text-align: center; color: var(--text-low);">
-          <i class="fa-solid fa-diagram-project" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.25;"></i>
+      currentActiveTrace = null;
+      await refreshAllTelemetry();
+      traceDetailBox.innerHTML = `
+        <div style="padding: 60px 20px; text-align: center; color: var(--text-dim);">
+          <i class="fa-solid fa-network-wired" style="font-size: 36px; margin-bottom: 14px; opacity: 0.3;"></i>
           <p>Store flushed. Trigger a pipeline trace to generate fresh telemetry!</p>
         </div>
       `;
     });
 
-    // Utility Formatters
-    function escapeText(str) {
+    // Helpers
+    function escapeHtml(str) {
       if (!str) return '';
       return String(str)
         .replace(/&/g, '&amp;')
@@ -1299,7 +1036,7 @@
         .replace(/"/g, '&quot;');
     }
 
-    function formatIso(isoStr) {
+    function formatIsoTime(isoStr) {
       if (!isoStr) return '';
       try {
         const d = new Date(isoStr);
@@ -1309,15 +1046,15 @@
       }
     }
 
-    async function refreshTelemetry() {
-      await loadOverview();
-      await loadTraces();
-      await loadLogs();
+    async function refreshAllTelemetry() {
+      await fetchOverviewStats();
+      await fetchTracesDirectory();
+      await fetchCorrelatedLogs();
     }
 
     // Startup
-    refreshTelemetry();
-    setInterval(refreshTelemetry, 3500);
+    refreshAllTelemetry();
+    setInterval(refreshAllTelemetry, 3500);
   </script>
 </body>
 </html>
