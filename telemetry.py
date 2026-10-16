@@ -96,6 +96,11 @@ class InMemoryTelemetryStore:
         }
 
     def record_span(self, span: ReadableSpan):
+        target = str(span.attributes.get("http.target", "")) if span.attributes else ""
+        route = str(span.attributes.get("http.route", "")) if span.attributes else ""
+        if "/api/telemetry" in target or "/api/telemetry" in route or span.name.startswith("GET /api/telemetry"):
+            return
+
         with self._lock:
             trace_id = f"{span.context.trace_id:032x}"
             span_id = f"{span.context.span_id:016x}"
@@ -180,6 +185,11 @@ class InMemoryTelemetryStore:
                 # Sort spans by start_time
                 sorted_spans = sorted(spans, key=lambda s: s["start_time_ns"])
                 root = next((s for s in sorted_spans if not s["parent_id"]), sorted_spans[0])
+                
+                # Exclude internal telemetry polling routes so real pipeline traces are prominently visible
+                r_name = str(root.get("name", ""))
+                if "/api/telemetry" in r_name or "/observability" in r_name:
+                    continue
                 
                 trace_start_ns = sorted_spans[0]["start_time_ns"]
                 trace_end_ns = max(s["end_time_ns"] or s["start_time_ns"] for s in sorted_spans)
