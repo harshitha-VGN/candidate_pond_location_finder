@@ -58,25 +58,43 @@ candidate_pond_location_finder/
 
 ## 💻 Quick Start & Running
 
-### 1. Start the Backend & Web Service
+### 1. Start the Backend & Web Service (Activate Virtual Environment)
 
 ```bash
-# Clone repository
-git clone https://github.com/harshitha-VGN/candidate_pond_location_finder.git
-cd candidate_pond_location_finder
+# 1. Activate the Python virtual environment
+source /Users/harshita/Desktop/venv/bin/activate
 
-# Install dependencies
+# 2. Navigate to project directory
+cd /Users/harshita/Desktop/venv/csd_pond
+
+# 3. Install OpenTelemetry & core dependencies (already installed in venv)
 pip install -r requirements.txt
 
-# Run Flask server (Default port: 5000, mapped externally to 5245)
+# 4. Verify OpenTelemetry setup (automated end-to-end test)
+python verify_telemetry.py
+
+# 5. Run Flask server with OpenTelemetry enabled
 python app.py
 ```
 
-### 2. Access the Web Application
+### 2. OpenTelemetry Observability Endpoints
+
+The system includes native OpenTelemetry distributed tracing, Prometheus metrics, and correlated logging:
+
+- **Live Observability Dashboard:** [`http://localhost:5000/observability`](http://localhost:5000/observability)  
+  *(Interactive UI featuring span waterfall flamegraphs, duration breakdowns per GIS stage, span attributes, and log streams)*
+- **Prometheus Metrics Endpoint:** [`http://localhost:5000/metrics`](http://localhost:5000/metrics)  
+  *(Standard Prometheus scrape format with `pond_analysis_requests_total`, `pond_analysis_duration_seconds`, etc.)*
+- **Traces API:** `GET http://localhost:5000/api/telemetry/traces`
+- **Correlated Logs API:** `GET http://localhost:5000/api/telemetry/logs`
+- **Trigger Sample Pipeline:** `POST http://localhost:5000/api/sampleRun`
+
+### 3. Access the Web Application
 
 Once the server is running, open any modern web browser:
-- **Network / Deployed URL:** [`http://10.1.75.79:5245/`](http://10.1.75.79:5245/)
 - **Localhost URL:** [`http://localhost:5000/`](http://localhost:5000/)
+- **Observability Dashboard:** [`http://localhost:5000/observability`](http://localhost:5000/observability)
+- **API Health Check:** `http://localhost:5000/health`
 *(You can also open `frontend/index.html` directly in your browser).*
 
 ---

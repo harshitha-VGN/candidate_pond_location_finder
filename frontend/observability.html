@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenTelemetry Live Observability | HydroPond AI</title>
+  <meta name="description" content="OpenTelemetry Distributed Tracing, Prometheus Metrics, and Correlated Logs for CSD Village Pond Planning System." />
+
+  <!-- Google Fonts: Inter, JetBrains Mono, Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --bg-card: #0f172a;
+      --bg-card-hover: #1e293b;
+      --border-color: rgba(148, 163, 184, 0.15);
+      --border-focus: rgba(56, 189, 248, 0.4);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --cyan: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.2);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.2);
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --purple: #a855f7;
+      --blue: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow backgrounds */
+    .ambient-glow-1 {
+      position: fixed;
+      top: -120px;
+      left: 10%;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .ambient-glow-2 {
+      position: fixed;
+      bottom: -150px;
+      right: 5%;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: #fff;
+      box-shadow: 0 0 15px var(--cyan-glow);
+    }
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .otel-badge {
+      font-size: 0.7rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--cyan);
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--emerald);
+      font-weight: 600;
+    }
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-main);
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-focus);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+    }
+    .btn-ghost {
+      background: transparent;
+      border-color: transparent;
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Main Container */
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 1.5rem 1.75rem 3rem;
+      flex: 1;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* KPI Summary Ribbon */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-focus);
+    }
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--cyan), transparent);
+    }
+    .kpi-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .kpi-sub {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 0.2rem;
+    }
+
+    /* Navigation Tabs */
+    .tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      padding: 0.65rem 1.15rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+    }
+    .tab-btn.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+    }
+
+    /* Content Panels */
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* Traces View Split Layout */
+    .traces-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.25rem;
+      min-height: 600px;
+    }
+    @media (max-width: 1024px) {
+      .traces-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .trace-list-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .panel-head {
+      padding: 0.85rem 1.15rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .trace-items-list {
+      overflow-y: auto;
+      max-height: 650px;
+    }
+    .trace-item {
+      padding: 0.9rem 1.15rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .trace-item:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .trace-item.active {
+      background: rgba(56, 189, 248, 0.08);
+      border-left: 3px solid var(--cyan);
+    }
+    .trace-item-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.3rem;
+    }
+    .trace-badge {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .badge-ok {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+    }
+    .badge-error {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--rose);
+    }
+    .trace-item-meta {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Trace Detail Panel */
+    .trace-detail-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+    .trace-header-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .trace-id-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--cyan);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+    }
+
+    /* Waterfall Visualizer */
+    .waterfall-container {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .waterfall-timeline-header {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+    .waterfall-axis {
+      display: flex;
+      justify-content: space-between;
+      padding-left: 0.5rem;
+    }
+    .waterfall-row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      align-items: center;
+      padding: 0.45rem 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+      cursor: pointer;
+      transition: background 0.15s ease;
+      font-size: 0.78rem;
+    }
+    .waterfall-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .waterfall-row.selected {
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .span-name-col {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-right: 0.5rem;
+    }
+    .span-bar-col {
+      position: relative;
+      height: 20px;
+      display: flex;
+      align-items: center;
+    }
+    .span-bar {
+      position: absolute;
+      height: 14px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      min-width: 4px;
+      box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+      display: flex;
+      align-items: center;
+      padding: 0 0.4rem;
+      color: #fff;
+      font-size: 0.65rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .span-bar.http-server {
+      background: linear-gradient(90deg, #2563eb, #60a5fa);
+    }
+    .span-bar.gis-processing {
+      background: linear-gradient(90deg, #7c3aed, #c084fc);
+      box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+    }
+    .span-bar.scoring {
+      background: linear-gradient(90deg, #059669, #34d399);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+    }
+    .span-bar.outbound-http {
+      background: linear-gradient(90deg, #d97706, #fbbf24);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    }
+
+    /* Span Inspector Card */
+    .span-inspector {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .span-inspector-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--cyan);
+    }
+    .attrs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .attrs-table th, .attrs-table td {
+      text-align: left;
+      padding: 0.4rem 0.6rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+    }
+    .attrs-table th {
+      color: var(--text-dim);
+      font-weight: 600;
+      width: 35%;
+    }
+    .attrs-table td {
+      color: var(--text-main);
+      word-break: break-all;
+    }
+
+    /* Metrics Tab */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .metric-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .metric-box-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .metric-box-desc {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-bottom: 1rem;
+    }
+    .prom-console {
+      background: #020617;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: #93c5fd;
+      max-height: 400px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* Logs Tab */
+    .logs-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .logs-filter-bar {
+      padding: 0.75rem 1.25rem;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filter-input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      outline: none;
+      min-width: 240px;
+    }
+    .filter-input:focus {
+      border-color: var(--cyan);
+    }
+    .logs-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .logs-table th {
+      text-align: left;
+      padding: 0.6rem 0.85rem;
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-dim);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .logs-table td {
+      padding: 0.5rem 0.85rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+      vertical-align: top;
+    }
+    .lvl-info { color: var(--cyan); font-weight: 600; }
+    .lvl-warn { color: var(--amber); font-weight: 600; }
+    .lvl-err  { color: var(--rose); font-weight: 600; }
+    .trace-link {
+      color: var(--cyan);
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .trace-link:hover {
+      text-decoration: underline;
+    }
+
+    /* VIVA Reference Guide Tab */
+    .guide-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.6;
+    }
+    .guide-card h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      color: var(--cyan);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .guide-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .guide-list {
+      padding-left: 1.25rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .guide-list li {
+      margin-bottom: 0.4rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow-1"></div>
+  <div class="ambient-glow-2"></div>
+
+  <!-- Header -->
+  <header>
+    <a href="/" class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-satellite-dish"></i>
+      </div>
+      <div>
+        <div class="brand-title">
+          OpenTelemetry Observability
+          <span class="otel-badge">v1.45.1 SDK</span>
+        </div>
+        <div style="font-size: 0.72rem; color: var(--text-dim);">Service: csd-village-pond-planner | Environment: lab-evaluation</div>
+      </div>
+    </a>
+
+    <div class="header-actions">
+      <div class="status-pill">
+        <div class="pulse-dot"></div>
+        <span>Collecting (Active)</span>
+      </div>
+      <button class="btn btn-primary" id="btn-trigger-run" title="Execute Pipeline on Sample KML to Generate Fresh Telemetry">
+        <i class="fa-solid fa-play"></i>
+        <span>Trigger Analysis Trace</span>
+      </button>
+      <button class="btn" id="btn-clear" title="Reset Telemetry Buffer">
+        <i class="fa-solid fa-trash-can"></i>
+        <span>Clear</span>
+      </button>
+      <a href="/metrics" target="_blank" class="btn" title="View Raw Prometheus Metrics">
+        <i class="fa-solid fa-terminal"></i>
+        <span>/metrics</span>
+      </a>
+      <a href="/" class="btn btn-ghost" title="Back to GIS Pond Planner">
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>GIS Map</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Body -->
+  <main>
+    <!-- Summary KPI Ribbon -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Total Traces</span>
+          <i class="fa-solid fa-diagram-project" style="color: var(--cyan);"></i>
+        </div>
+        <div class="kpi-value" id="kpi-traces">0</div>
+        <div class="kpi-sub">Bounded in-memory store</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Spans Recorded</span>
+          <i class="fa-solid fa-layer-group" style="color: var(--purple);"></i>
+        </div>
+        <div class="kpi-value" id="kpi-spans">0</div>
+        <div class="kpi-sub">Across 7 pipeline stages</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Avg Pipeline Latency</span>
+          <i class="fa-solid fa-stopwatch" style="color: var(--amber);"></i>
+        </div>
+        <div class="kpi-value" id="kpi-latency">0 ms</div>
+        <div class="kpi-sub">End-to-end processing</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Ponds Discovered</span>
+          <i class="fa-solid fa-water" style="color: var(--emerald);"></i>
+        </div>
+        <div class="kpi-value" id="kpi-candidates">0</div>
+        <div class="kpi-sub">Hydrological candidates</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">
+          <span>Correlated Logs</span>
+          <i class="fa-solid fa-file-lines" style="color: var(--blue);"></i>
+        </div>
+        <div class="kpi-value" id="kpi-logs">0</div>
+        <div class="kpi-sub">With active trace/span ID</div>
+      </div>
+    </section>
+
+    <!-- Tab Bar -->
+    <nav class="tab-bar">
+      <button class="tab-btn active" data-tab="tab-traces">
+        <i class="fa-solid fa-bars-staggered"></i>
+        <span>Distributed Traces (Waterfall)</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-metrics">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Metrics & Prometheus</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-logs">
+        <i class="fa-solid fa-terminal"></i>
+        <span>Correlated Logs</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-viva">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span>VIVA Architecture Reference</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: Distributed Traces -->
+    <div class="tab-panel active" id="tab-traces">
+      <div class="traces-layout">
+        <!-- Left: Trace List -->
+        <div class="trace-list-panel">
+          <div class="panel-head">
+            <span>Captured Traces</span>
+            <span id="trace-count-pill" style="color: var(--text-dim); font-size: 0.75rem;">0 traces</span>
+          </div>
+          <div class="trace-items-list" id="trace-items-container">
+            <div style="padding: 2rem; text-align: center; color: var(--text-dim); font-size: 0.8rem;">
+              No traces captured yet.<br>Click <strong>"Trigger Analysis Trace"</strong> above to run!
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Trace Details & Waterfall -->
+        <div class="trace-detail-panel" id="trace-detail-panel">
+          <div style="padding: 3rem; text-align: center; color: var(--text-dim);">
+            <i class="fa-solid fa-network-wired" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+            <p>Select a trace from the left panel to inspect the span waterfall, duration breakdown, and OpenTelemetry attributes.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Metrics -->
+    <div class="tab-panel" id="tab-metrics">
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <div class="metric-box-title">
+            <i class="fa-solid fa-calculator" style="color: var(--cyan);"></i>
+            <span>pond_analysis_requests_total</span>
+          </div>
+          <div class="metric-box-desc">Counter tracking all incoming contour analysis executions segmented by status (success/error).</div>
+          <div class="kpi-value" id="m-requests">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-title">
+            <i class="fa-solid fa-clock" style="color: var(--amber);"></i>
+            <span>pond_analysis_duration_seconds</span>
+          </div>
+          <div class="metric-box-desc">Histogram tracking pipeline execution latency percentiles across DEM and flow stages.</div>
+          <div class="kpi-value" id="m-duration">0 s</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-title">
+            <i class="fa-solid fa-water-ladder" style="color: var(--emerald);"></i>
+            <span>pond_candidates_found_total</span>
+          </div>
+          <div class="metric-box-desc">Counter of candidate pond locations identified via D8 uphill reverse BFS catchment search.</div>
+          <div class="kpi-value" id="m-candidates">0</div>
+        </div>
+      </div>
+
+      <div class="metric-box">
+        <div class="panel-head" style="margin-bottom: 0.75rem; background: transparent; padding: 0;">
+          <div class="metric-box-title" style="margin: 0;">
+            <i class="fa-solid fa-code" style="color: var(--cyan);"></i>
+            <span>Live Prometheus Scrape Output (/metrics)</span>
+          </div>
+          <button class="btn" id="btn-refresh-prom" style="font-size: 0.75rem; padding: 0.25rem 0.6rem;">
+            <i class="fa-solid fa-arrows-rotate"></i> Refresh
+          </button>
+        </div>
+        <div class="prom-console" id="prom-console-output">Scraping Prometheus metrics...</div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Correlated Logs -->
+    <div class="tab-panel" id="tab-logs">
+      <div class="logs-container">
+        <div class="logs-filter-bar">
+          <input type="text" class="filter-input" id="log-search-input" placeholder="Search message or Trace ID..." />
+          <div style="font-size: 0.78rem; color: var(--text-dim);">
+            Tip: Click any <strong>Trace ID</strong> to open that trace's waterfall in the Traces tab.
+          </div>
+        </div>
+        <div style="overflow-x: auto; max-height: 600px;">
+          <table class="logs-table">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Timestamp</th>
+                <th style="width: 70px;">Level</th>
+                <th style="width: 110px;">Logger</th>
+                <th style="width: 220px;">OpenTelemetry Trace ID</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+            <tbody id="logs-table-body">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 2rem;">Loading logs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Architecture & Viva Reference -->
+    <div class="tab-panel" id="tab-viva">
+      <div class="guide-card">
+        <h3><i class="fa-solid fa-cubes"></i> 1. The 3 Pillars of Observability in this Project</h3>
+        <p>OpenTelemetry standardizes telemetry collection into three correlated pillars:</p>
+        <ul class="guide-list">
+          <li><strong>Distributed Traces:</strong> Tracks requests through end-to-end execution. Each pipeline run creates a parent span (`pond_analysis.pipeline`), containing nested child spans for KML parsing, DEM raster generation, flow direction/accumulation, catchment delineation, Pareto scoring, and GeoJSON building.</li>
+          <li><strong>Metrics:</strong> Numeric quantitative measurements collected at runtime (request counts, duration histograms, pond candidate counters, DEM raster size) exported via standard Prometheus format at <code>/metrics</code>.</li>
+          <li><strong>Logs:</strong> Event logs linked directly to traces via <code>trace_id</code> and <code>span_id</code> injection in log records, enabling instant correlation between errors and execution traces.</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h3><i class="fa-solid fa-diagram-project"></i> 2. Instrumenting the Hydrological Pipeline</h3>
+        <p>The core pipeline spans captured by OpenTelemetry in <code>app.py</code>:</p>
+        <ul class="guide-list">
+          <li><code>kml_parser.parse_contours</code>: Records input KML/KMZ path, contour count, and elevation boundaries.</li>
+          <li><code>dem_builder.build_dem</code>: Records raster resolution (e.g. 120m), grid shape, min/max elevations.</li>
+          <li><code>terrain_analysis.flow_routing</code>: Measures D8 flow direction, flow accumulation, river detection, and exclusion zone buffering.</li>
+          <li><code>catchment.find_pond_candidates</code>: Measures uphill reverse BFS catchment solver and candidates found.</li>
+          <li><code>pond_selector.score_and_select</code>: Records multi-criteria scoring, Pareto selection, and external OSM road distance queries.</li>
+          <li><code>geojson_builder.build_geojson</code>: Measures final spatial GeoJSON construction.</li>
+        </ul>
+      </div>
+
+      <div class="guide-card">
+        <h3><i class="fa-solid fa-lightbulb"></i> 3. Why OpenTelemetry is Essential for Systems</h3>
+        <p>During the VIVA, explain that OpenTelemetry eliminates "blind spots" in backend services:</p>
+        <ul class="guide-list">
+          <li><strong>Performance Bottleneck Identification:</strong> The waterfall visualizer immediately shows which stage consumes the most time (e.g., DEM interpolation vs. hydrological catchment BFS).</li>
+          <li><strong>Root Cause Analysis:</strong> If contour parsing or river masking fails, the span is marked with status <code>ERROR</code>, capturing the exact exception stack trace and parameters.</li>
+          <li><strong>Standardized & Vendor-Neutral:</strong> Works with Jaeger, Prometheus, Grafana, Datadog, or native Python exporters without rewriting application logic.</li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // State
+    let currentTraceId = null;
+    let allLogs = [];
+    let autoRefreshInterval = null;
+
+    // DOM Elements
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanels = document.querySelectorAll('.tab-panel');
+    const traceItemsContainer = document.getElementById('trace-items-container');
+    const traceDetailPanel = document.getElementById('trace-detail-panel');
+    const promConsoleOutput = document.getElementById('prom-console-output');
+    const logsTableBody = document.getElementById('logs-table-body');
+    const logSearchInput = document.getElementById('log-search-input');
+
+    // KPI Elements
+    const kpiTraces = document.getElementById('kpi-traces');
+    const kpiSpans = document.getElementById('kpi-spans');
+    const kpiLatency = document.getElementById('kpi-latency');
+    const kpiCandidates = document.getElementById('kpi-candidates');
+    const kpiLogs = document.getElementById('kpi-logs');
+    const mRequests = document.getElementById('m-requests');
+    const mDuration = document.getElementById('m-duration');
+    const mCandidates = document.getElementById('m-candidates');
+
+    // Tab Switching
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabPanels.forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        const target = btn.getAttribute('data-tab');
+        document.getElementById(target).classList.add('active');
+        if (target === 'tab-metrics') {
+          fetchPrometheusMetrics();
+        }
+      });
+    });
+
+    // Fetch Overview KPIs
+    async function fetchOverview() {
+      try {
+        const res = await fetch('/api/telemetry/overview');
+        if (!res.ok) return;
+        const data = await res.json();
+        kpiTraces.textContent = data.total_traces || 0;
+        kpiSpans.textContent = data.total_spans || 0;
+        kpiLatency.textContent = (data.avg_duration_ms || 0) + ' ms';
+        kpiCandidates.textContent = data.total_candidates_found || 0;
+        kpiLogs.textContent = data.log_records_count || 0;
+        mRequests.textContent = data.total_requests || 0;
+        mDuration.textContent = (data.avg_duration_ms ? (data.avg_duration_ms / 1000).toFixed(2) : 0) + ' s';
+        mCandidates.textContent = data.total_candidates_found || 0;
+      } catch (err) {
+        console.error('Error fetching overview:', err);
+      }
+    }
+
+    // Fetch Traces List
+    async function fetchTraces() {
+      try {
+        const res = await fetch('/api/telemetry/traces');
+        if (!res.ok) return;
+        const data = await res.json();
+        const traces = data.traces || [];
+        document.getElementById('trace-count-pill').textContent = `${traces.length} traces`;
+
+        if (traces.length === 0) {
+          traceItemsContainer.innerHTML = `
+            <div style="padding: 2rem; text-align: center; color: var(--text-dim); font-size: 0.8rem;">
+              No traces captured yet.<br>Click <strong>"Trigger Analysis Trace"</strong> above to run!
+            </div>
+          `;
+          return;
+        }
+
+        traceItemsContainer.innerHTML = traces.map(t => {
+          const isError = t.status === 'ERROR';
+          const isActive = t.trace_id === currentTraceId;
+          return `
+            <div class="trace-item ${isActive ? 'active' : ''}" onclick="selectTrace('${t.trace_id}')">
+              <div class="trace-item-title">
+                <span>${escapeHtml(t.root_span)}</span>
+                <span class="trace-badge ${isError ? 'badge-error' : 'badge-ok'}">${t.status}</span>
+              </div>
+              <div class="trace-item-meta">
+                <span>${t.duration_ms} ms &bull; ${t.spans_count} spans</span>
+                <span>${formatTime(t.start_time_iso)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // If no trace currently selected, select the first one
+        if (!currentTraceId && traces.length > 0) {
+          selectTrace(traces[0].trace_id);
+        }
+      } catch (err) {
+        console.error('Error fetching traces:', err);
+      }
+    }
+
+    // Select and Render a Trace Waterfall
+    async function selectTrace(traceId) {
+      currentTraceId = traceId;
+      // Update active state in list
+      document.querySelectorAll('.trace-item').forEach(el => {
+        el.classList.toggle('active', el.getAttribute('onclick').includes(traceId));
+      });
+
+      try {
+        const res = await fetch(`/api/telemetry/traces/${traceId}`);
+        if (!res.ok) return;
+        const trace = await res.json();
+        renderWaterfall(trace);
+      } catch (err) {
+        console.error('Error fetching trace details:', err);
+      }
+    }
+
+    function renderWaterfall(trace) {
+      const isError = trace.status === 'ERROR';
+      const spans = trace.spans || [];
+
+      let html = `
+        <div class="trace-header-card">
+          <div>
+            <div style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.2rem;">Trace Root Operation</div>
+            <div style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 700;">
+              ${escapeHtml(trace.root_span)}
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="trace-id-pill" title="Click to copy Trace ID" onclick="navigator.clipboard.writeText('${trace.trace_id}'); alert('Trace ID copied!')">
+              <i class="fa-solid fa-fingerprint"></i>
+              <span>${trace.trace_id.substring(0, 16)}...</span>
+              <i class="fa-regular fa-copy" style="font-size: 0.75rem;"></i>
+            </div>
+            <div class="trace-badge ${isError ? 'badge-error' : 'badge-ok'}" style="font-size: 0.8rem; padding: 0.25rem 0.6rem;">
+              ${trace.status}
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; font-weight: 700; color: var(--cyan);">
+              ${trace.total_duration_ms} ms
+            </div>
+          </div>
+        </div>
+
+        <div class="waterfall-container">
+          <div class="waterfall-timeline-header">
+            <div>SPAN HIERARCHY (${spans.length} spans)</div>
+            <div class="waterfall-axis">
+              <span>0 ms</span>
+              <span>${(trace.total_duration_ms * 0.25).toFixed(1)} ms</span>
+              <span>${(trace.total_duration_ms * 0.50).toFixed(1)} ms</span>
+              <span>${(trace.total_duration_ms * 0.75).toFixed(1)} ms</span>
+              <span>${trace.total_duration_ms.toFixed(1)} ms</span>
+            </div>
+          </div>
+      `;
+
+      spans.forEach((s, idx) => {
+        let barClass = '';
+        if (s.name.startsWith('POST') || s.name.startsWith('GET')) barClass = 'http-server';
+        else if (s.name.includes('dem') || s.name.includes('terrain') || s.name.includes('catchment')) barClass = 'gis-processing';
+        else if (s.name.includes('score')) barClass = 'scoring';
+        else if (s.name === 'GET' || s.name.includes('osm')) barClass = 'outbound-http';
+
+        const indentPx = s.depth * 14;
+        html += `
+          <div class="waterfall-row ${idx === 0 ? 'selected' : ''}" id="wf-row-${s.span_id}" onclick="inspectSpan('${s.span_id}')">
+            <div class="span-name-col" style="padding-left: ${indentPx}px;" title="${escapeHtml(s.name)}">
+              <i class="fa-solid fa-circle" style="font-size: 0.4rem; color: ${s.status === 'ERROR' ? 'var(--rose)' : 'var(--cyan)'};"></i>
+              <span>${escapeHtml(s.name)}</span>
+            </div>
+            <div class="span-bar-col">
+              <div class="span-bar ${barClass}" style="left: ${s.waterfall_pct_start}%; width: ${s.waterfall_pct_width}%;">
+                ${s.duration_ms} ms
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+
+      // Inspector placeholder
+      html += `<div id="span-inspector-mount"></div>`;
+
+      traceDetailPanel.innerHTML = html;
+
+      // Select first span by default
+      if (spans.length > 0) {
+        inspectSpan(spans[0].span_id);
+      }
+    }
+
+    // Inspect Span Attributes
+    async function inspectSpan(spanId) {
+      if (!currentTraceId) return;
+      document.querySelectorAll('.waterfall-row').forEach(r => r.classList.remove('selected'));
+      const activeRow = document.getElementById(`wf-row-${spanId}`);
+      if (activeRow) activeRow.classList.add('selected');
+
+      try {
+        const res = await fetch(`/api/telemetry/traces/${currentTraceId}`);
+        if (!res.ok) return;
+        const trace = await res.json();
+        const span = (trace.spans || []).find(s => s.span_id === spanId);
+        if (!span) return;
+
+        const mount = document.getElementById('span-inspector-mount');
+        if (!mount) return;
+
+        let attrsRows = `
+          <tr><th>span.id</th><td>${span.span_id}</td></tr>
+          <tr><th>parent.id</th><td>${span.parent_id || 'None (Root Span)'}</td></tr>
+          <tr><th>start.time</th><td>${span.start_time_iso}</td></tr>
+          <tr><th>duration</th><td>${span.duration_ms} ms</td></tr>
+          <tr><th>status</th><td>${span.status} ${span.status_description ? `(${span.status_description})` : ''}</td></tr>
+        `;
+
+        if (span.attributes && Object.keys(span.attributes).length > 0) {
+          for (const [k, v] of Object.entries(span.attributes)) {
+            attrsRows += `<tr><th>${escapeHtml(k)}</th><td>${escapeHtml(String(v))}</td></tr>`;
+          }
+        }
+
+        mount.innerHTML = `
+          <div class="span-inspector">
+            <div class="span-inspector-title">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>OpenTelemetry Span Attributes: <strong>${escapeHtml(span.name)}</strong></span>
+            </div>
+            <table class="attrs-table">
+              <tbody>${attrsRows}</tbody>
+            </table>
+          </div>
+        `;
+      } catch (err) {
+        console.error('Error inspecting span:', err);
+      }
+    }
+
+    // Fetch Correlated Logs
+    async function fetchLogs() {
+      try {
+        const res = await fetch('/api/telemetry/logs?limit=150');
+        if (!res.ok) return;
+        const data = await res.json();
+        allLogs = data.logs || [];
+        renderLogs();
+      } catch (err) {
+        console.error('Error fetching logs:', err);
+      }
+    }
+
+    function renderLogs() {
+      const filter = (logSearchInput.value || '').trim().toLowerCase();
+      const filtered = allLogs.filter(l => {
+        if (!filter) return true;
+        return (l.message && l.message.toLowerCase().includes(filter)) ||
+               (l.trace_id && l.trace_id.toLowerCase().includes(filter)) ||
+               (l.level && l.level.toLowerCase().includes(filter));
+      });
+
+      if (filtered.length === 0) {
+        logsTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-dim); padding: 2rem;">
+              No matching log records found.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      logsTableBody.innerHTML = filtered.map(l => {
+        let lvlClass = 'lvl-info';
+        if (l.level === 'WARNING') lvlClass = 'lvl-warn';
+        if (l.level === 'ERROR') lvlClass = 'lvl-err';
+
+        const hasTrace = l.has_trace;
+        const traceCell = hasTrace
+          ? `<a class="trace-link" onclick="openTraceFromLog('${l.trace_id}')" title="View waterfall for this trace"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${l.trace_id.substring(0, 16)}...</a>`
+          : `<span style="color: var(--text-dim);">-</span>`;
+
+        return `
+          <tr>
+            <td style="color: var(--text-dim);">${formatTime(l.timestamp)}</td>
+            <td class="${lvlClass}">${l.level}</td>
+            <td style="color: var(--text-muted);">${escapeHtml(l.logger || '')}</td>
+            <td>${traceCell}</td>
+            <td style="color: var(--text-main);">${escapeHtml(l.message || '')}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    logSearchInput.addEventListener('input', renderLogs);
+
+    function openTraceFromLog(traceId) {
+      document.querySelector('[data-tab="tab-traces"]').click();
+      selectTrace(traceId);
+    }
+
+    // Fetch Prometheus Metrics
+    async function fetchPrometheusMetrics() {
+      try {
+        const res = await fetch('/metrics');
+        if (!res.ok) return;
+        const text = await res.text();
+        promConsoleOutput.textContent = text;
+      } catch (err) {
+        promConsoleOutput.textContent = 'Error fetching Prometheus metrics: ' + err;
+      }
+    }
+
+    document.getElementById('btn-refresh-prom').addEventListener('click', fetchPrometheusMetrics);
+
+    // Trigger Sample Analysis Trace
+    document.getElementById('btn-trigger-run').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-trigger-run');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>Running Pipeline...</span>';
+
+      try {
+        const res = await fetch('/api/sampleRun?top_n=4&grid_res=100', { method: 'POST' });
+        const data = await res.json();
+        if (res.ok) {
+          const tid = data.metadata ? data.metadata.trace_id : null;
+          await refreshAll();
+          if (tid) {
+            selectTrace(tid);
+          }
+        } else {
+          alert('Pipeline returned error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Failed to trigger pipeline run: ' + err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> <span>Trigger Analysis Trace</span>';
+      }
+    });
+
+    // Clear Telemetry
+    document.getElementById('btn-clear').addEventListener('click', async () => {
+      if (!confirm('Clear all in-memory traces and logs?')) return;
+      await fetch('/api/telemetry/clear', { method: 'POST' });
+      currentTraceId = null;
+      await refreshAll();
+      traceDetailPanel.innerHTML = `
+        <div style="padding: 3rem; text-align: center; color: var(--text-dim);">
+          <i class="fa-solid fa-network-wired" style="font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+          <p>Telemetry store cleared. Trigger an analysis to generate fresh data!</p>
+        </div>
+      `;
+    });
+
+    // Helpers
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatTime(isoStr) {
+      if (!isoStr) return '';
+      try {
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }) + '.' + String(d.getMilliseconds()).padStart(3, '0');
+      } catch (e) {
+        return isoStr;
+      }
+    }
+
+    async function refreshAll() {
+      await fetchOverview();
+      await fetchTraces();
+      await fetchLogs();
+    }
+
+    // Initial Load
+    refreshAll();
+
+    // Auto-refresh every 3 seconds
+    autoRefreshInterval = setInterval(refreshAll, 3000);
+  </script>
+</body>
+</html>
